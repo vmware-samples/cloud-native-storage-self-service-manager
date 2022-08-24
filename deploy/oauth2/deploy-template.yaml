@@ -1,0 +1,473 @@
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: cns-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cns-manager
+subjects:
+  - kind: ServiceAccount
+    name: cns-manager
+roleRef:
+  kind: ClusterRole
+  name: psp:vmware-system-privileged
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: orphanvolumestats.cnsmanager.cns.vmware.com
+spec:
+  group: cnsmanager.cns.vmware.com
+  names:
+    kind: OrphanVolumeStats
+    listKind: OrphanVolumeStatsList
+    plural: orphanvolumestats
+    singular: orphanvolumestats
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: OrphanVolumeStats is the Schema for the orphanvolumestats API
+          properties:
+            apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              type: string
+            kind:
+              description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: OrphanVolumeStatsSpec defines the desired state of OrphanVolumeStats
+              type: object
+            status:
+              description: OrphanVolumeStatsStatus defines the observed state of OrphanVolumeStats
+              properties:
+                TotalAttachedOrphansDeleted:
+                  format: int64
+                  type: integer
+                TotalDetachedOrphansDeleted:
+                  format: int64
+                  type: integer
+              type: object
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.6.2
+  creationTimestamp: null
+  name: volumemigrationjobs.cnsmanager.cns.vmware.com
+spec:
+  group: cnsmanager.cns.vmware.com
+  names:
+    kind: VolumeMigrationJob
+    listKind: VolumeMigrationJobList
+    plural: volumemigrationjobs
+    singular: volumemigrationjob
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: VolumeMigrationJob is the Schema for the volumemigrationjob API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: VolumeMigrationJobSpec defines the desired state of VolumeMigrationJob.
+            properties:
+              sourceDatastore:
+                description: SourceDatastore refers to the datastore from which volumes are being migrated.
+                type: string
+              targetDatastore:
+                description: TargetDatastore refers to the datastore to which volumes are being migrated.
+                type: string
+              datacenter:
+                description: Datacenter is the datacenter in which datastores are located.
+                type: string
+              volumesToMigrate:
+                description: List of volumes that need to be migrated.
+                items:
+                  type: string
+                type: array
+            required:
+            - targetDatastore
+            - datacenter
+            type: object
+          status:
+            description: VolumeMigrationJobStatus defines the observed state of VolumeMigrationJob.
+            properties:
+              overallPhase:
+                description: Overall phase of the submitted job.
+                type: string
+              startTime:
+                description: Time at which the job started processing.
+                format: date-time
+                type: string
+              endTime:
+                description: Time at which the job completed processing.
+                format: date-time
+                type: string
+              migrationTasks:
+                description: List of names of volume migration tasks submitted.
+                items:
+                  type: string
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.6.2
+  creationTimestamp: null
+  name: volumemigrationtasks.cnsmanager.cns.vmware.com
+spec:
+  group: cnsmanager.cns.vmware.com
+  names:
+    kind: VolumeMigrationTask
+    listKind: VolumeMigrationTaskList
+    plural: volumemigrationtasks
+    singular: volumemigrationtask
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: VolumeMigrationTask is the Schema for the volumemigrationtask API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: VolumeMigrationTaskSpec defines the desired state of VolumeMigrationTask.
+            properties:
+              fcdId:
+                description: FcdId refers to the fcd being migrated
+                type: string
+              targetDatastore:
+                description: TargetDatastore refers to the datastore to which volume is being migrated.
+                type: string
+              datacenter:
+                description: Datacenter is the datacenter in which datastores are located.
+                type: string
+            required:
+            - fcdId
+            - targetDatastore
+            - datacenter
+            type: object
+          status:
+            description: VolumeMigrationTaskStatus defines the observed state of VolumeMigrationTask.
+            properties:
+              startTime:
+                description: Invocation time of the task.
+                format: date-time
+                type: string
+              endTime:
+                description: Time at which the task finished processing.
+                format: date-time
+                type: string
+              phase:
+                description: Current phase of the submitted task.
+                type: string
+              cnsTaskId:
+                description: Id of the task submitted to CNS.
+                type: string
+              error:
+                description: Any error on the task.
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: cns-manager
+rules:
+  - apiGroups:
+      - cnsmanager.cns.vmware.com
+    resources:
+      - orphanvolumestats
+      - volumemigrationjobs
+      - volumemigrationtasks
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - cnsmanager.cns.vmware.com
+    resources:
+      - orphanvolumestats/status
+      - volumemigrationjobs/status
+      - volumemigrationtasks/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - create
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cns-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cns-manager
+subjects:
+  - kind: ServiceAccount
+    name: cns-manager
+    namespace: cns-manager
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cnsmanager-config
+data:
+  config.json: |
+    {
+      "snapshot_prefix": "snapshot",
+      "auto-delete-ov": "enable",
+      "cns-manager-namespace": "%CNS_MANAGER_NAMESPACE%",
+      "max-volume-migration-job-workers": "10",
+      "max-volume-migration-task-workers": "10",
+      "volume-migration-job-cleanup-elapse-time-mins": "720",
+      "volume-migration-job-cleanup-interval-mins": "30"
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cns-manager
+  labels:
+    app: cns-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cns-manager
+  template:
+    metadata:
+      labels:
+        app: cns-manager
+    spec:
+      serviceAccount: cns-manager
+      containers:
+        - name: nginx-proxy
+          # Same dockerhub copy hosted at nginx:1.23.0
+          image: projects.registry.vmware.com/cns_manager/nginx:1.23.0
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: web
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          #uncomment below volume mount if tls is enabled.
+            #- name: cnsmanager-tls
+            #  mountPath:	/etc/nginx/tls
+            #  readOnly: true
+        - name: oauth2-proxy
+          # Same copy as quay.io/oauth2-proxy/oauth2-proxy:v7.3.0-amd64
+          image: projects.registry.vmware.com/cns_manager/oauth2-proxy:v7.3.0-amd64
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          imagePullPolicy: Always
+          args:
+            - --http-address
+            - "0.0.0.0:4180"
+            - --upstream
+            - http://localhost:80/1.0.0/,http://localhost:80/ui/
+            - --provider
+            - "gitlab"
+            - --redirect-url
+            - "http://%CNS_MANAGER_ENDPOINT%/oauth2/callback"
+            - --client-id
+            - 3dded69240b2f626218bad5d5367b1e98549a66d832206775d9b1b78900c8493
+            - --client-secret
+            - f262f66324feb1b31762ce715a20e4699cf39c85ca4c12fa09a4528cf051638c
+            - --cookie-secret
+            - IelBwY6bF_G9oQ7okmCe5A==
+            - --oidc-issuer-url
+            - https://gitlab.eng.vmware.com
+            - --cookie-secure=false
+            - --email-domain
+            - vmware.com
+            - --skip-provider-button=true
+            - --skip-oidc-discovery=true
+            - --set-xauthrequest=true
+            - --login-url
+            - https://gitlab.eng.vmware.com/oauth/authorize
+            - --redeem-url
+            - https://gitlab.eng.vmware.com/oauth/token
+            - --oidc-jwks-url
+            - https://gitlab.eng.vmware.com/oauth/discovery/keys
+          ports:
+            - containerPort: 4180
+              name: web
+        - name: swagger-ui
+          # Same dockerhub copy hosted at swaggerapi/swagger-ui:v4.12.0
+          image: projects.registry.vmware.com/cns_manager/swagger-ui:v4.12.0
+          env:
+            - name: URL
+              value: "./swagger.yaml"
+            - name: DOM_ID
+              value: "#swagger-ui"
+            - name: SWAGGER_JSON
+              value: "/api/swagger.yaml"
+            - name: SWAGGER_JSON_URL
+              value: "./swagger.yaml"
+            - name: BASE_URL
+              value: "/ui"
+            - name: TRY_IT_OUT_ENABLED
+              value: "true"
+            - name: DEEP_LINKING
+              value: "true"
+          volumeMounts:
+            - name: swagger-api
+              mountPath: /api
+        - name: cns-manager
+          image: projects.registry.vmware.com/cns_manager/cns-manager:basic-auth
+          resources:
+            requests:
+              cpu: 500m
+              memory: 500Mi
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 2114
+              name: prometheus
+              protocol: TCP
+          volumeMounts:
+            - name: sv-kubeconfig
+              mountPath: /etc/sv
+            - name: vc-creds
+              mountPath: /etc/vc
+            - name: cnsmanager-config
+              mountPath: /etc/cnsmanager
+      volumes:
+        - name: sv-kubeconfig
+          secret:
+            secretName: sv-kubeconfig
+        - name: vc-creds
+          secret:
+            secretName: vc-creds
+        - name: swagger-api
+          configMap:
+            name: swagger-api
+        - name: cnsmanager-config
+          configMap:
+            name: cnsmanager-config
+        - name: nginx-conf
+          configMap:
+            name: nginx-conf
+      #uncomment below volume creation if tls is enabled.
+        #- name: cnsmanager-tls
+        #  secret:	
+        #    secretName: cnsmanager-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cns-manager
+  namespace: cns-manager
+  labels:
+    app: cns-manager
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+      nodePort: 30008
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443
+      nodePort: 30009
+    - name: prometheus
+      port: 2114
+      protocol: TCP
+      targetPort: 2114
+      nodePort: 30010
+  selector:
+    app: cns-manager
+  sessionAffinity: None

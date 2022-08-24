@@ -1,0 +1,5 @@
+{
+    "vc": "<vc-ip>",
+    "user": "<vc-admin-user>",
+    "password": "<vc-admin-password>"
+  }
