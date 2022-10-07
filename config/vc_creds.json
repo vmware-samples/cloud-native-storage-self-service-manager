@@ -1,5 +1,5 @@
 {
     "vc": "<vc-ip>",
-    "user": "<vc-admin-user>",
-    "password": "<vc-admin-password>"
+    "user": "<vc-user@domain>",
+    "password": "<vc-password>"
   }

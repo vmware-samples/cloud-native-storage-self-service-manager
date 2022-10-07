@@ -12,9 +12,9 @@ Refer to sample config file provided under config folder.
 Refer to sample config file provided under config folder.
 ```
 {
-    "vc": "vc-ip",
-    "user": "vc-user@domain",
-    "password": "vc-password"
+    "vc": "<vc-ip>",
+    "user": "<vc-user@domain>",
+    "password": "<vc-password>"
 }
 ```
 

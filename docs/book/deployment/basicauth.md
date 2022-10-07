@@ -10,9 +10,9 @@ Refer to sample config file provided under config folder.
 Refer to sample config file provided under config folder.
 ```
 {
-    "vc": "10.187.99.154",
-    "user": "vc-user@domain",
-    "password": "vc-password"
+    "vc": "<vc-ip>",
+    "user": "<vc-user@domain>",
+    "password": "<vc-password>"
 }
 ```
 
