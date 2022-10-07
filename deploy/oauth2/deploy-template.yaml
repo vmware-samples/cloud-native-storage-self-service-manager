@@ -276,6 +276,14 @@ rules:
       - get
       - create
       - update
+  - apiGroups:
+      - ""
+    resources:
+      - secrets 
+    verbs:
+      - get
+      - list
+      - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -296,7 +304,9 @@ metadata:
   name: cnsmanager-config
 data:
   config.json: |
-    {
+    { 
+      "auth-type": "%AUTH_TYPE%",
+      "allowedUsers": ["johndoe@helloabc.com"],
       "snapshot_prefix": "snapshot",
       "auto-delete-ov": "enable",
       "cns-manager-namespace": "%CNS_MANAGER_NAMESPACE%",
@@ -405,7 +415,7 @@ spec:
             - name: swagger-api
               mountPath: /api
         - name: cns-manager
-          image: projects.registry.vmware.com/cns_manager/cns-manager:basic-auth
+          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.1.0
           resources:
             requests:
               cpu: 500m

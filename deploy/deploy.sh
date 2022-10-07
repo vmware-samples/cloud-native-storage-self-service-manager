@@ -118,6 +118,7 @@ rm swagger.yaml
 # Deploy CNS manager
 sed -e "s#%CNS_MANAGER_ENDPOINT%#$CNS_MANAGER_ENDPOINT#g" \
     -e "s#%CNS_MANAGER_NAMESPACE%#$NAMESPACE#g" \
+	-e "s#%AUTH_TYPE%#$AUTH_MECHANISM#g" \
 		$MANIFEST_FOLDER/deploy-template.yaml > deploy.yaml
 kubectl -n $NAMESPACE apply -f deploy.yaml
 if [ $? -ne 0 ]

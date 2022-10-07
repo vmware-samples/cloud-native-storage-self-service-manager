@@ -13,11 +13,123 @@ servers:
   - url: http://%CNS_MANAGER_ENDPOINT%/1.0.0/
     description: CNS manager endpoint.
 tags:
+  - name: ClusterRecordKeeping
+    description: Everything about recording cluster details.
   - name: DatastoreOperations
     description: Operations invoked directly on datastores.
   - name: JobDetails
     description: Operations related to CNS manager asynchronous jobs.
 paths:
+  /listregisteredclusters:
+    get:
+      tags:
+        - ClusterRecordKeeping
+      summary: Get the list of registered k8s clusters from CNS manager inventory.
+      description: CNS manager does a record keeping of all the clusters in a vCenter.
+        The registered cluster config is  stored in the CNS manager inventory by using
+        ClusterId as the key. The listregisteredclusters API will return the list
+        of all the registered clusterIds as an array.
+      operationId: listregisteredclusters
+      responses:
+        "200":
+          description: Returns clusterIds registered in CNS manager.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterIds'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /registercluster:
+    post:
+      tags:
+        - ClusterRecordKeeping
+      summary: Register a cluster with the CNS Manager.
+      description: "The API takes kubeconfig of a given cluster as an input. Make sure to copy the \
+        \ contents of the Cluster KubeConfig to a file. The kubeconfig is stored securely inside \
+        \ a k8s secret on the cluster where CNS manager is deployed. The API additionally takes optional \
+        \ params to read cluster-id set for CSI driver from the CSI secret."
+      operationId: registercluster
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                clusterKubeConfigFile:
+                  type: string
+                  format: binary
+                  description: A file with cluster kubeconfig content.
+                  allowEmptyValue: false
+                  required: true
+              required:
+                - clusterKubeConfigFile
+      parameters:
+        - name: csiDriverSecretName
+          in: query
+          description: (Optional) Refers to the name of the config secret of vsphere-csi-driver.
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+            default: vsphere-config-secret
+        - name: csiDriverSecretNamespace
+          in: query
+          description: (Optional) Refers to the namespace of the config secret of vsphere-csi-driver.
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string   
+            default: vmware-system-csi
+      responses:
+        "200":
+          description: Returns RegisterClusterResult.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterClusterResult'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /deregistercluster:
+    post:
+      tags:
+        - ClusterRecordKeeping
+      summary: Deregister a cluster with the CNS Manager.
+      description: The API takes unique clusterID as input and de-registers the cluster
+        from CNS Manager.
+      operationId: deregistercluster
+      parameters:
+        - name: clusterId
+          in: query
+          description: Refers to cluster-id available in decoded data field from vsphere-config-secret.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: Returns DeregisterClusterResult.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeregisterClusterResult'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /datastoreresources:
     get:
       tags:
@@ -120,6 +232,19 @@ paths:
         - name: skipPolicyCheck
           in: query
           description: (Optional) A flag to skip validation of volume policy with target datastore. Set to "true" to skip the policy check and force migrate a volume.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: boolean
+            format: boolean
+            default: false
+        - name: skipVolumeAccessibilityCheck
+          in: query
+          description: "(Optional) If this flag is set to 'true', it will force migrate the volumes without\
+          \ checking if they will be accessible on target datastore from all cluster nodes(or topology-matching\
+          \ nodes in a topology-aware environment). This may affect the application availability if it gets scheduled\
+          \ on a cluster node that can't access the target datastore. So it's NOT recommended to set this flag to true."
           required: false
           style: form
           explode: true
@@ -292,6 +417,42 @@ components:
           type: string
         error:
           type: string
+    ClusterIds:
+      type: array
+      description: Array of cluster IDs registered in CNS manager.
+      items:
+        type: string
+      x-schema-name: ClusterIds
+    RegisterClusterResult:
+      properties:
+        status:
+          type: string
+          description: Status to indicate if registration was successful.
+          format: string
+          example: Registration Successful
+        clusterId:
+          type: string
+          description: Indicates the clusterId which got registered with CNS Manager.
+          format: string
+          example: cluster-1
+      example:
+        status: Registration Successful
+        clusterId: cluster-1
+    DeregisterClusterResult:
+      properties:
+        status:
+          type: string
+          description: Status to indicate if deregistration was successful.
+          format: string
+          example: Deregistration Successful
+        clusterId:
+          type: string
+          description: Indicates the clusterId which got deregistered with CNS Manager.
+          format: string
+          example: cluster-1
+      example:
+        status: Deregistration Successful
+        clusterId: cluster-1
     FcdAttachmentDetails:
       properties:
         attached:

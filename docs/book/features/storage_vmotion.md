@@ -6,10 +6,9 @@ This feature involves moving volumes from one datastore to another. It supports 
 4. Resume CNS volume provisioning on a datastore.
 
 ### Prerequisites
-* vSphere 7.0.u3
-* CSI driver version 2.5+ for Suspend/Resume volume provisioning operations to work.  
-Volume migration alone can work with CSI driver 2.4+.
-* Target datastore to be mounted on all the hosts from which source datastore is accessible.
+* vSphere 7.0.u3+
+* CSI driver version 2.5+  
+* Source and target datastores should be mounted on at least a single common ESX host.
 
 ### Functionality Not Supported
 * The following are not supported with current release of CNS manager, hence please ensure that storage vMotion be not performed for:  
@@ -20,12 +19,13 @@ Volume migration alone can work with CSI driver 2.4+.
 
 #### Caveats
 * If vcp-to-csi migrated volumes are relocated to a different datastore, then it won't be possible to switch back to in-tree VCP plug-in as the volumes will lose mapping with VCP.
-* While the volume migration is going on, the attach/detach operations on the volume will be waiting. But Kubernetes will continue to retry the operation which should succeed after the volume has been relocated.
+* While the migration of a volume attached to a node is in progress, any operations attaching/detaching volumes to this node will be queued(volume relocation acquires a VM lock).  
+What this implies that if a pod scheduled on this node gets killed, or any other pod is trying to attach a volume to this node, they might not come up until the volume migration is finished and VM lock is released, implying a possibility of some downtime for the application.  
+But Kubernetes will continue to retry the attach/detach operations which should succeed after the volume has been relocated.
+* If volumes are attached to a VM, their migration to a vVol datastore is not supported.
 
 ### Concurrency Limits & Scale
-While some concurrency is possible to achieve while migrating volumes, with limited scale testing, we recommend to migrate only one volume at a time using this tool.
-
-Nevertheless on CNS manager application level, there can be 8 volume migrations that can be invoked in parallel across all clusters.  
+On CNS manager application level, there can be 8 volume migrations that can be invoked in parallel across all clusters.  
 And on vCenter level, the limits for simultaneous migrations can be be derived from this document - https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.vcenterhost.doc/GUID-25EA5833-03B5-4EDD-A167-87578B8009B3.html
 
 This translates to concurrent migration limits to be 1 per VM(for attached volumes), 2 per host & 8 per datastore. If there are parallel FCD migrations invoked beyond these limits, they will be queued based on the limits for each type of resource.
@@ -44,7 +44,7 @@ This translates to concurrent migration limits to be 1 per VM(for attached volum
 
 2. **Suspend volume provisioning on a datastore**  
 Before migrating volumes from a datastore, we don't want to create any new volumes on that datastore. So it will be better to put the datastore in a mode that suspends volume provisioning from CSI.  
-This can be achieved by invoking `SuspendVolumeProvisioning` API. This needs all k8s clusters registered with CNS manager to be upgraded to CSI 2.5, otherwise the operation will fail.
+This can be achieved by invoking `SuspendVolumeProvisioning` API. This needs all Kubernetes clusters registered with CNS manager to be upgraded to CSI driver version 2.5+ (with `cnsmgr-suspend-create-volume` feature state switch enabled), otherwise the operation will fail.
 
     API Details:  
    */suspendvolumeprovisioning*

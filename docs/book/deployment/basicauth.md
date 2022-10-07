@@ -31,12 +31,14 @@ a. Recreate the secrets sv-kubeconfig & vc-creds created from these files and re
 b. Delete the namespace and run the deployment script again.
 
 ### Deploy the application
-* After preparing the config, use the following command to deploy CNS manager on the cluster.
+* After preparing the config, use the following command to deploy CNS manager on the cluster. 
 
 ```
 > cd deploy
 > ./deploy.sh <namespace> <path-to-sv_kubeconfig> <path-to-vc_creds.json> <CNS manager endpoint> <authType> <(tls flag)true|false> <BasicAuth Username(required with basicauth)> <BasicAuth Password(required with basicauth)> <path-to-tls.key(required if tls enabled)> <path-to-tls.pem(required if tls enabled)> 
 ```
+
+Note: The basicauth username and password used here is what admin chooses while deploying this application, and it may not be same as the vCenter username and password.
 
 For example
 ```
@@ -74,10 +76,10 @@ cns-manager-6ff456dc97-nrj65   3/3    Running       0           54s
 * After the deployment, the Swagger UI for invoking APIs can be accessed at <CNS_Manager_Endpoint>/ui/  
 This will need basic auth credentials selected during deployment.
 
-Alternatively, the APIs can also be invoked using some other client like *curl*, with credentials passed in command line arguments.  
+Alternatively, the APIs can also be invoked using some other client like *curl*, with basicauth credentials passed in command line arguments.  
 For instance:  
 ```
-curl -X 'GET' 'http://10.185.227.74:30008/1.0.0/datastoreresources?datacenter=VSAN- DC&datastore=vsanDatastore' -H 'accept: application/json' -u "Admistrator:Admin123@"
+curl -X 'GET' 'http://10.184.71.61:30008/1.0.0/datastoreresources?datacenter=VSAN- DC&datastore=vsanDatastore' -H 'accept: application/json' -u "Admistrator:Admin123@"
 ```
 
 * Please note that the Swagger UI is accessible through URL <CNS_Manager_Endpoint>/ui/  

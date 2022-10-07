@@ -16,7 +16,7 @@ cat ~/.kube/config
 Refer to sample config file provided under config folder.
 ```
 {
-    "vc": "10.187.99.154",
+    "vc": "vc-ip",
     "user": "vc-user@domain",
     "password": "vc-password"
 }
@@ -39,8 +39,14 @@ Use `http://<CNS_manager_endpoint>:30008/oauth2/callback` for Redirect URL.
 2. In provided oauth2 [deployment yaml](../../../deploy/oauth2/deploy-template.yaml) that uses Gitlab as an example, update the provider, client-id & client-secret arguments with corresponding values from your registered OAuth application.  
 Check [oauth2-proxy documentation](https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/oauth_provider/#gitlab-auth-provider) for configuration for each provider.
 
+### Add authorized users for the application
+* Add users who can invoke the APIs by editing the application config. In provided oauth2 [deployment yaml](../../../deploy/oauth2/deploy-template.yaml), update the `allowedUsers` field in `cnsmanager-config` configmap definition.
+It accepts a list of comma-separated values.
+
+
+
 ### Deploy the application
-* After preparing the config, use the following command to deploy CNS manager on the cluster.
+* Use the following command to deploy CNS manager on the cluster.
 
 ```
 > cd deploy
@@ -83,3 +89,18 @@ cns-manager-6ff456dc97-nrj65   4/4    Running       0           37s
 This will redirect to the OIDC provider for authentication.
 
 After authentication, the APIs can be directly invoked from Swagger UI.
+
+
+## Day 2 Operations
+* **Authorize additional users to invoke APIs**   
+
+If you have deployed CNS manager with oAuth2 authentication and you want to 
+add more authorized users to invoke the APIs , it can be achieved by updating the `allowedUsers` field in `cnsmanager-config` configmap definition.
+It accepts a list of comma-separated values.  
+Restart the deployment after updating the configmap
+
+```
+> kubectl edit configmap cnsmanager-config -n <namespace>  
+> kubectl rollout restart deployment cns-manager -n <namespace>
+
+```
