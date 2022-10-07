@@ -3,12 +3,8 @@
 Below are the steps to configure, deploy & run cns-manager on a vanilla Kubernetes cluster with basic auth.
 
 ### Prepare the config
-1. Capture kubeconfig of the cluster in which CNS manager is being deployed in a file named sv_kubeconfig.  
-Refer to sample config file provided under config folder. The kube config on master VM can be checked using below command:
-```
-// On master VM
-cat ~/.kube/config
-```
+1. Capture kubeconfig of the cluster in which CNS manager is being deployed in a file named `sv_kubeconfig`.  
+Refer to sample config file provided under config folder.
 
 2. Create a file named vc_creds.json and copy into it the credentials to your VC.  
 Refer to sample config file provided under config folder.
@@ -27,7 +23,7 @@ So the CNS manager endpoint would be <WORKER_NODE_IP>:30008.
 Note : If your cloud provider supports a load balancer, you can choose to deploy a load balancer service instead. In that case, the CNS manager endpoint would be <LB_SVC_EXTERNAL_IP>:30008
 
 Also if you need to change kubeconfig or VC creds after the deployment script has run, then you can either:  
-a. Recreate the secrets sv-kubeconfig & vc-creds created from these files and restart the cns- manager deployment, OR  
+a. Recreate the secrets `sv-kubeconfig` & `vc-creds` created from these files and restart the cns- manager deployment, OR  
 b. Delete the namespace and run the deployment script again.
 
 ### Deploy the application
