@@ -172,7 +172,7 @@ rules:
   resources: ["nodes"]
   verbs: ["get", "list"]
 - apiGroups: [""]
-  resources: ["secrets"]
+  resources: ["secrets","configmaps"]
   verbs: ["get", "list"]
 - apiGroups: ["cns.vmware.com"]
   resources: ["cnsvspherevolumemigrations"]
