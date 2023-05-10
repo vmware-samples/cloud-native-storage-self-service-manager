@@ -239,7 +239,7 @@ status:
   storedVersions: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
   creationTimestamp: null
   name: cns-manager
@@ -286,12 +286,12 @@ rules:
       - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
   name: cns-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: Role
   name: cns-manager
 subjects:
   - kind: ServiceAccount
@@ -307,12 +307,13 @@ data:
     { 
       "auth-type": "%AUTH_TYPE%",
       "snapshot_prefix": "snapshot",
-      "auto-delete-ov": "enable",
+      "auto-delete-ov": "disable",
       "cns-manager-namespace": "%CNS_MANAGER_NAMESPACE%",
       "max-volume-migration-job-workers": "10",
       "max-volume-migration-task-workers": "10",
       "volume-migration-job-cleanup-elapse-time-mins": "720",
-      "volume-migration-job-cleanup-interval-mins": "30"
+      "volume-migration-job-cleanup-interval-mins": "30",
+      "vso-create-time-limit-mins": "60"
     }
 ---
 apiVersion: apps/v1
@@ -379,7 +380,7 @@ spec:
             - name: swagger-api
               mountPath: /api
         - name: cns-manager
-          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.1.1-rc.1
+          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.2.0-rc.5
           resources:
             requests:
               cpu: 500m

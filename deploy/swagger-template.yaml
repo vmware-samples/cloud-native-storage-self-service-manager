@@ -19,6 +19,8 @@ tags:
     description: Operations invoked directly on datastores.
   - name: JobDetails
     description: Operations related to CNS manager asynchronous jobs.
+  - name: OrphanVolume	
+    description: Everything about orphan volumes.
 paths:
   /listregisteredclusters:
     get:
@@ -406,6 +408,131 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /orphanvolumes:	
+    get:	
+      tags:	
+      - OrphanVolume	
+      summary: List all the orphan volumes.	
+      description: >-
+        Returns a list of orphan volumes for the given input parameters, which could be attached or detached.	
+        Since the detection of orphan volumes is an expensive operation, the operation is performed asynchronously at regular intervals.	
+        This API returns the list of orphan volumes found in the last run of the operation.	
+        	
+        	
+        The response body contains the following fields:	
+        1. `TotalOrphans` - The total number of orphan volumes found.	
+        	
+        2. `OrphanVolumes` - The list of orphan volumes found.	
+        	
+        3. `RetryAfterMinutes` - The time in minutes after which the next retry should be attempted to get the updated orphan volume list.	
+        	
+        4. `TotalOrphansAttached` - The total number of orphan volumes found that are attached to a VM.	
+        	
+        5. `TotalOrphansDetached` - The total number of orphan volumes found that are detached.	
+        	
+        	
+        Orphan volumes are safe to delete since there is no PersistentVolume in the Kubernetes cluster referring to them.	
+      operationId: orphanVolumeList	
+      parameters:	
+        - name: includeDetails	
+          in: query	
+          description: Set to "true" to get a detailed dump of the orphan volume.	
+          required: true	
+          style: form	
+          explode: true	
+          schema:	
+            type: boolean	
+            format: boolean	
+            default: false	
+        - name: datacenter	
+          in: query	
+          description: (Optional) Datacenter name to narrow down the orphan volume search.	
+          required: false	
+          style: form	
+          explode: true	
+          schema:	
+            type: string	
+            format: string	
+        - name: datastores	
+          in: query	
+          description: (Optional) List of comma-separated datastores. Specify only if	
+            the `datacenter` param is specified.	
+          required: false	
+          style: form	
+          explode: true	
+          schema:	
+            type: string	
+            format: string	
+      responses:	
+        "200":	
+          description: Returns OrphanVolumeResult.	
+          content:	
+            application/json:	
+              schema:	
+                $ref: '#/components/schemas/OrphanVolumeResult'	
+          headers:	
+            X-Retry-After:	
+              description: The number of seconds to wait before retrying the request.	
+              schema:	
+                type: string	
+        default:	
+          description: unexpected error	
+          content:	
+            application/json:	
+              schema:	
+                $ref: '#/components/schemas/Error'	
+    delete:	
+      tags:	
+        - OrphanVolume	
+      summary: Delete orphan volumes.	
+      description: Delete the orphan volumes for the given criteria.	
+      operationId: orphanVolumeDelete	
+      parameters:	
+        - name: deleteAttachedOrphans	
+          in: query	
+          description: >-	
+            Set to `true` to delete attached orphans. When set to `true`, 	
+            the API will detach the orphan volume from the VM before deleting it.	
+          required: true	
+          style: form	
+          explode: true	
+          schema:	
+            type: boolean	
+            format: boolean	
+            default: false	
+        - name: datacenter	
+          in: query	
+          description: (Optional) Datacenter name to narrow down the deletion of orphan volumes to.	
+          required: false	
+          style: form	
+          explode: true	
+          schema:	
+            type: string	
+            format: string	
+        - name: datastores	
+          in: query	
+          description: (Optional) List of comma-separated datastores to narrow down	
+            the deletion of orphan volumes to. Specify only if the `datacenter` param	
+            is specified.	
+          required: false	
+          style: form	
+          explode: true	
+          schema:	
+            type: string	
+            format: string	
+      responses:	
+        "200":	
+          description: Returns OrphanVolumeDeleteResult.	
+          content:	
+            application/json:	
+              schema:	
+                $ref: '#/components/schemas/OrphanVolumeDeleteResult'	
+        default:	
+          description: unexpected error	
+          content:	
+            application/json:	
+              schema:	
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     Error:
@@ -690,3 +817,203 @@ components:
           example: "Successfully resumed volume provisioning on datstore nfs0-1."
       example:
         message: Successfully resumed volume provisioning on datstore nfs0-1.
+    OrphanVolumeDetails:
+      properties:
+        attached:
+          type: boolean
+          description: Indicates whether the orphan volume is attached to a VM or
+            not.
+          example: true
+        vm:
+          type: string
+          description: The name of VM to which the orphan volume is attached.
+          example: k8s-node-1
+      example:
+        vm: k8s-node-1
+        attached: true
+    OrphanVolume:
+      description: >-
+        Orphan volumes are volumes that are present in the vSphere datastore but have
+        no corresponding PersistentVolume in the Kubernetes cluster. 
+        Primarily, Orphan volumes are created when the CNS solution creates more than one volume
+        for a Persistent Volume in the Kubernetes cluster. This can occur when the
+        vCenter components are slow, storage is slow, vCenter service restarts, or
+        there are connectivity issues between vCenter and ESXi hosts
+      properties:
+        volumeId:
+          type: string
+          description: ID of the orphan volume.
+          example: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        volumeName:
+          type: string
+          description: Name of the orphan volume.
+          example: pvc-338934c2-6067-489a-a929-7c559ea18c82
+        datacenter:
+          type: string
+          description: Datacenter where the orphan volume is located.
+          example: VSAN-DC
+        datastore:
+          type: string
+          description: Datastore where the orphan volume is located.
+          example: vsanDatastore
+        createTime:
+          type: string
+          description: Create time of the orphan volume.
+          example: 2021-07-23 19:19:59.365062 +0000 UTC
+        capacityInMb:
+          type: integer
+          description: Capacity of the orphan volume.
+          format: int64
+          example: 100
+        details:
+          $ref: '#/components/schemas/OrphanVolumeDetails'
+      example:
+        createTime: 2021-07-23 19:19:59.365062 +0000 UTC
+        datacenter: VSAN-DC
+        datastore: vsanDatastore
+        volumeName: pvc-338934c2-6067-489a-a929-7c559ea18c82
+        volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        details:
+          vm: k8s-node-1
+          attached: true
+        capacityInMb: 100
+    OrphanVolumeResult:
+      required:
+        - totalOrphans
+        - orphanVolumes
+        - retryAfterMinutes
+      properties:
+        totalOrphans:
+          type: integer
+          description: The total orphan volumes returned.
+          format: int64
+          example: 1
+        totalOrphansAttached:
+          type: integer
+          description: This field is set only if includeDetails is set to true.
+          format: int64
+          example: 1
+        totalOrphansDetached:
+          type: integer
+          description: This field is set only if includeDetails is set to true.
+          format: int64
+          example: 1
+        orphanVolumes:
+          type: array
+          description: Array of orphan volumes
+          items:
+            $ref: '#/components/schemas/OrphanVolume'
+        retryAfterMinutes:
+          type: integer
+          description: The time in minutes after which the next retry should be
+            attempted to get the updated orphan volume list.
+          format: int64
+          example: 1
+      example:
+        totalOrphansAttached: 2
+        totalOrphansDetached: 1
+        orphanVolumes:
+          - createTime: 2021-07-23 19:19:59.365062 +0000 UTC
+            datacenter: VSAN-DC
+            datastore: vsanDatastore
+            volumeName: pvc-338934c2-6067-489a-a929-7c559ea18c82
+            volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
+            details:
+              vm: k8s-node-1
+              attached: true
+            capacityInMb: 100
+          - createTime: 2021-07-23 19:19:59.365062 +0000 UTC
+            datacenter: VSAN-DC
+            datastore: vsanDatastore
+            volumeName: pvc-338934c2-6067-489a-a929-7c559ea18c82
+            volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
+            details:
+              vm: k8s-node-1
+              attached: true
+            capacityInMb: 100
+          - createTime: 2021-07-23 19:19:59.365062 +0000 UTC
+            datacenter: VSAN-DC
+            datastore: local-0 (1)
+            volumeName: pvc-338934c2-6067-489a-a929-7c559ea18c82
+            volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
+            details:
+              attached: false
+            capacityInMb: 100
+        totalOrphans: 3
+        retryAfter: 10
+    OrphanVolumeDeleteResult:
+      type: object
+      description: OrphanVolumeDeleteResult is the result of deleting orphan volumes.
+      required:
+        - totalOrphansDetected
+        - totalOrphansDeleted
+        - totalDetachedOrphansDeleted
+        - totalAttachedOrphansDeleted
+        - successfulOrphanDeletions
+      properties:
+        totalOrphansDetected:
+          type: integer
+          description: Number of orphan volumes detected.
+          format: int64
+          example: 10
+        totalOrphansDeleted:
+          type: integer
+          description: Number of orphan volumes deleted.
+          format: int64
+          example: 5
+        totalDetachedOrphansDeleted:
+          type: integer
+          description: Number of deleted orphan volumes that were detached.
+          format: int64
+          example: 3
+        totalAttachedOrphansDeleted:
+          type: integer
+          description: Number of deleted orphan volumes that were attached to a VM.
+          format: int64
+          example: 2
+        successfulOrphanDeletions:
+          type: array
+          description: Array of successfully deleted orphan volume IDs.
+          items:
+            type: string
+        failedOrphanDeletions:
+          description: Array of failed orphan volume deletions with the reason for failure for each orphan volume.
+          type: array
+          items:
+            $ref: '#/components/schemas/OrphanVolumeDeleteFailure'
+      example:
+        totalOrphansDetected: 7
+        totalOrphansDeleted: 5
+        totalDetachedOrphansDeleted: 3
+        totalAttachedOrphansDeleted: 2
+        successfulOrphanDeletions:
+          - 44d6787e-697b-4d99-a151-c3f37c49fcff
+          - 54d6787e-397b-4c99-a151-c4f37c49fcff
+          - 74d6787e-397b-4c99-a151-c5f37c49fcff
+          - 84d6787e-397b-4c99-a151-c6f37c49fcff
+          - 94d7787e-397b-4c99-a151-c7f37c49fcff
+        failedOrphanDeletions:
+          - volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
+            reason: Failed to delete orphan volume
+          - volumeId: 94d6787e-397b-4c99-a151-c7f37c49fcff
+            reason: Failed to delete orphan volume
+    OrphanVolumeDeleteFailure:
+      type: object
+      description: >-
+        OrphanVolumeDeleteFailure is the result of a failed orphan volume deletion. 
+        It contains the ID of the orphan volume and the reason for deletion failure.
+      required:
+        - volumeId
+        - reason
+      properties:
+        volumeId:
+          type: string
+          description: ID of the orphan volume whose deletion failed.
+          example: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        reason:
+          type: string
+          description: Reason for deletion failure.
+          example: Failed to delete orphan volume
+      example:
+        volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        reason: Failed to delete orphan volume
