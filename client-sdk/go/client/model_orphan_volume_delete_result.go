@@ -1,5 +1,5 @@
 /*
-Copyright 2023 VMware, Inc.
+Copyright 2022 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ limitations under the License.
 
 package swagger
 
+// OrphanVolumeDeleteResult is the result of deleting orphan volumes.
 type OrphanVolumeDeleteResult struct {
 	// Number of orphan volumes detected.
 	TotalOrphansDetected int64 `json:"totalOrphansDetected"`
@@ -25,4 +26,8 @@ type OrphanVolumeDeleteResult struct {
 	TotalDetachedOrphansDeleted int64 `json:"totalDetachedOrphansDeleted"`
 	// Number of deleted orphan volumes that were attached to a VM.
 	TotalAttachedOrphansDeleted int64 `json:"totalAttachedOrphansDeleted"`
+	// Array of successfully deleted orphan volume IDs.
+	SuccessfulOrphanDeletions []string `json:"successfulOrphanDeletions"`
+	// Array of failed orphan volume deletions with the reason for failure for each orphan volume.
+	FailedOrphanDeletions []OrphanVolumeDeleteFailure `json:"failedOrphanDeletions,omitempty"`
 }

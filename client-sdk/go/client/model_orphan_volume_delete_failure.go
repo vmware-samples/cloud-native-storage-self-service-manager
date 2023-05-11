@@ -1,5 +1,5 @@
 /*
-Copyright 2021 VMware, Inc.
+Copyright 2023 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@ limitations under the License.
 */
 package swagger
 
-type Fault struct {
-	// Error message for the fault.
-	Message string `json:"message,omitempty"`
-	// Type of fault.
-	FaultType string `json:"faultType,omitempty"`
+// OrphanVolumeDeleteFailure is the result of a failed orphan volume deletion.  It contains the ID of the orphan volume and the reason for deletion failure.
+type OrphanVolumeDeleteFailure struct {
+	// ID of the orphan volume whose deletion failed.
+	VolumeId string `json:"volumeId"`
+	// Reason for deletion failure.
+	Reason string `json:"reason"`
 }

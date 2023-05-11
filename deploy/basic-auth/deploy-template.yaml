@@ -313,7 +313,7 @@ data:
       "max-volume-migration-task-workers": "10",
       "volume-migration-job-cleanup-elapse-time-mins": "720",
       "volume-migration-job-cleanup-interval-mins": "30",
-      "vso-create-time-limit-mins": "60"
+      "orphan-volume-detection-interval-mins": "50"
     }
 ---
 apiVersion: apps/v1
@@ -380,7 +380,7 @@ spec:
             - name: swagger-api
               mountPath: /api
         - name: cns-manager
-          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.2.0-rc.5
+          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.2.0-rc.6
           resources:
             requests:
               cpu: 500m

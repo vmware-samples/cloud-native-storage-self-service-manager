@@ -1,5 +1,5 @@
 /*
-Copyright 2023 VMware, Inc.
+Copyright 2022 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@ type OrphanVolumeApiService service
 OrphanVolumeApiService Delete orphan volumes.
 Delete the orphan volumes for the given criteria.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param deleteAttachedOrphans Set to &#x60;true&#x60; to delete attached orphans. When set to &#x60;true&#x60;, the API will detach the orphan volume from the VM before deleting it.
+ * @param deleteAttachedOrphans Set to &#x60;true&#x60; to delete attached orphans. When set to &#x60;true&#x60;,   the API will detach the orphan volume from the VM before deleting it.
  * @param optional nil or *OrphanVolumeApiOrphanVolumeDeleteOpts - Optional Parameters:
-     * @param "Datacenter" (optional.String) -  (Optional) Datacenter name to narrow down the deletion of orphan.
+     * @param "Datacenter" (optional.String) -  (Optional) Datacenter name to narrow down the deletion of orphan volumes to.
      * @param "Datastores" (optional.String) -  (Optional) List of comma-separated datastores to narrow down the deletion of orphan volumes to. Specify only if the &#x60;datacenter&#x60; param is specified.
 @return OrphanVolumeDeleteResult
 */
@@ -146,7 +146,7 @@ func (a *OrphanVolumeApiService) OrphanVolumeDelete(ctx context.Context, deleteA
 
 /*
 OrphanVolumeApiService List all the orphan volumes.
-Orphan volumes are created when the CNS solution creates more than one volume for a Persistent Volume in the Kubernetes cluster. This occurs when the vCenter components are slow, storage is slow, vCenter service restarts, connectivity issues between vCenter and ESXi hosts etc.  Orphan volumes are the volumes that are present in the vSphere datastore but there is no corresponding PersistentVolume in the Kubernetes cluster. This API detects the orphan volumes for the given input parameters and returns a list of orphan volumes.   The orphan volumes could be attached or detached. 1. &#x60;Attached orphan volumes&#x60; - These would have the details set and will have info on the VM it is attached to. 2. &#x60;Detached orphan volumes&#x60; - These are the orphan volumes that do not have the details set.  Orphan volumes are safe to detach since there is no &#x60;PersistentVolume&#x60; in the Kubernetes cluster referring it.
+Returns a list of orphan volumes for the given input parameters, which could be attached or detached.  Since the detection of orphan volumes is an expensive operation, the operation is performed asynchronously at regular intervals.  This API returns the list of orphan volumes found in the last run of the operation.      The response body contains the following fields:  1. &#x60;TotalOrphans&#x60; - The total number of orphan volumes found.    2. &#x60;OrphanVolumes&#x60; - The list of orphan volumes found.    3. &#x60;RetryAfterMinutes&#x60; - The time in minutes after which the next retry should be attempted to get the updated orphan volume list.    4. &#x60;TotalOrphansAttached&#x60; - The total number of orphan volumes found that are attached to a VM.    5. &#x60;TotalOrphansDetached&#x60; - The total number of orphan volumes found that are detached.      Orphan volumes are safe to delete since there is no PersistentVolume in the Kubernetes cluster referring to them.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param includeDetails Set to \&quot;true\&quot; to get a detailed dump of the orphan volume.
  * @param optional nil or *OrphanVolumeApiOrphanVolumeListOpts - Optional Parameters:

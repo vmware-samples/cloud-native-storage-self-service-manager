@@ -72,7 +72,7 @@ paths:
       parameters:
         - name: csiDriverSecretName
           in: query
-          description: (Optional) Refers to the name of the config secret of vsphere-csi-driver.
+          description: Refers to the name of the config secret of vsphere-csi-driver.
           style: form
           explode: true
           schema:
@@ -81,7 +81,7 @@ paths:
             default: vsphere-config-secret
         - name: csiDriverSecretNamespace
           in: query
-          description: (Optional) Refers to the namespace of the config secret of vsphere-csi-driver.
+          description: Refers to the namespace of the config secret of vsphere-csi-driver.
           style: form
           explode: true
           schema:
@@ -818,6 +818,9 @@ components:
       example:
         message: Successfully resumed volume provisioning on datstore nfs0-1.
     OrphanVolumeDetails:
+      type: object
+      description: OrphanVolumeDetails represents if the orphan volume is attached to a VM or not.
+      required: [ attached ]
       properties:
         attached:
           type: boolean
