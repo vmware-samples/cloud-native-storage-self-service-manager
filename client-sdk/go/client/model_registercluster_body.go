@@ -1,5 +1,5 @@
 /*
-Copyright 2021 VMware, Inc.
+Copyright 2023 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@ limitations under the License.
 */
 package swagger
 
-type Fault struct {
-	// Error message for the fault.
-	Message string `json:"message,omitempty"`
-	// Type of fault.
-	FaultType string `json:"faultType,omitempty"`
+import (
+	"os"
+)
+
+type RegisterclusterBody struct {
+	// A file with cluster kubeconfig content.
+	ClusterKubeConfigFile **os.File `json:"clusterKubeConfigFile"`
 }

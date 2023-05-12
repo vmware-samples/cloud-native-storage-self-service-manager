@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@ import (
 	"context"
 
 	apiclient "cns.vmware.com/cns-manager/client"
+	"github.com/antihax/optional"
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -45,15 +46,15 @@ func main() {
 	//================API Invocation Examples===========
 
 	//======Datastore Resources============
-	datacenter := "VSAN-DC"
-	datastore := "vsanDatastore"
-	res, resp, err := client.DatastoreOperationsApi.GetDatastoreResources(ctx, datacenter, datastore)
-	if err != nil {
-		logger.Error(err, "failed to get datastore resources")
-	}
+	// datacenter := "VSAN-DC"
+	// datastore := "vsanDatastore"
+	// res, resp, err := client.DatastoreOperationsApi.GetDatastoreResources(ctx, datacenter, datastore)
+	// if err != nil {
+	// 	logger.Error(err, "failed to get datastore resources")
+	// }
 
-	logger.Info("Result", "result", res) //This gives the result in json format
-	logger.Info("HTTP status", "status", resp.Status)
+	// logger.Info("Result", "result", res) //This gives the result in json format
+	// logger.Info("HTTP status", "status", resp.Status)
 	//=======================================================
 
 	//====== Migrate Volumes========
@@ -104,6 +105,36 @@ func main() {
 	// res, resp, err := client.DatastoreOperationsApi.ResumeVolumeProvisioning(ctx, datacenter, datastore)
 	// if err != nil {
 	// 	logger.Error(err, "failed to resume provisioing volumes on datastore")
+	// }
+	// logger.Info("Result", "result", res) //This gives the result in json format
+	// logger.Info("HTTP status", "status", resp.Status)
+	//=======================================================
+
+	//======List orphan volumes======
+	includeDetails := true
+	opts := &apiclient.OrphanVolumeApiOrphanVolumeListOpts{
+		Datacenter: optional.NewString("VSAN-DC"),
+		Datastores: optional.NewString("vsanDatastore"),
+	}
+
+	res, resp, err := client.OrphanVolumeApi.OrphanVolumeList(ctx, includeDetails, opts)
+	if err != nil {
+		logger.Error(err, "failed to list orphan volumes")
+	}
+	logger.Info("Result", "result", res) //This gives the result in json format
+	logger.Info("HTTP status", "status", resp.Status)
+	//=======================================================
+
+	//======Delete orphan volumes======
+	// deleteAttachedOrphans := false
+	// opts := &apiclient.OrphanVolumeApiOrphanVolumeDeleteOpts{
+	// 	Datacenter: optional.NewString("VSAN-DC"),
+	// 	Datastores: optional.NewString("vsanDatastore"),
+	// }
+
+	// res, resp, err := client.OrphanVolumeApi.OrphanVolumeDelete(ctx, deleteAttachedOrphans, opts)
+	// if err != nil {
+	// 	logger.Error(err, "failed to delete orphan volumes")
 	// }
 	// logger.Info("Result", "result", res) //This gives the result in json format
 	// logger.Info("HTTP status", "status", resp.Status)
