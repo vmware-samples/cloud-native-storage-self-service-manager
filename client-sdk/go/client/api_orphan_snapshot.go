@@ -1,5 +1,5 @@
 /*
-Copyright 2022 VMware, Inc.
+Copyright 2024 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,45 +29,48 @@ var (
 	_ context.Context
 )
 
-type OrphanVolumeApiService service
+type OrphanSnapshotApiService service
 /*
-OrphanVolumeApiService Delete orphan volumes.
-Delete the orphan volumes for the given criteria.
+OrphanSnapshotApiService Delete orphan snapshots.
+Use this API to identify and delete orphan snapshots. From vSphere CSI plugin&#x27;s perspective, orphan snapshots are FCD snapshots that were initiated through the vSphere CSI driver but do not have a corresponding VolumeSnapshotContent object in the Kubernetes cluster. snapshotPrefix is the prefix used in the snapshot description. Its default value is “snapshot”, which is also the default value used by snapshot sidecar in CSI and it can be configured based on prefix used in the snapshot sidecar. Use the &#x60;snapshotPrefix&#x60; parameter to specify alternate prefix.  From Velero vSphere plugin&#x27;s perspective, orphan snapshots are snapshots whose upload is failing with multiple attempts or snapshots whose local deletion is failing after successful upload. For Velero vSphere plugin, user has to specify “AstrolabeSnapshot” as the snapshotPrefix.  Orphan snapshot deletion operation is performed asynchronously. It returns a job id, the status of which can be retrieved using &#x60;jobStatus&#x60; API.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param deleteAttachedOrphans Set to &#x60;true&#x60; to delete attached orphans. When set to &#x60;true&#x60;,  the API will detach the orphan volume from the VM before deleting it.
- * @param optional nil or *OrphanVolumeApiOrphanVolumeDeleteOpts - Optional Parameters:
-     * @param "Datacenter" (optional.String) -  (Optional) Datacenter name to narrow down the deletion of orphan volumes to.
-     * @param "Datastores" (optional.String) -  (Optional) List of comma-separated datastores to narrow down the deletion of orphan volumes to. Specify only if the &#x60;datacenter&#x60; param is specified.
-@return OrphanVolumeDeleteResult
+ * @param optional nil or *OrphanSnapshotApiOrphanSnapshotsDeleteOpts - Optional Parameters:
+     * @param "Datacenter" (optional.String) -  (Optional) Datacenter name to narrow down the orphan snapshots search.
+     * @param "Datastores" (optional.String) -  (Optional) List of comma-separated datastores. Specify only if the &#x60;datacenter&#x60; param is specified.
+     * @param "SnapshotPrefix" (optional.String) -  (Optional) The snapshot prefix indicates the prefix used in snapshot description.
+@return SnapshotDeleteResult
 */
 
-type OrphanVolumeApiOrphanVolumeDeleteOpts struct {
+type OrphanSnapshotApiOrphanSnapshotsDeleteOpts struct {
     Datacenter optional.String
     Datastores optional.String
+    SnapshotPrefix optional.String
 }
 
-func (a *OrphanVolumeApiService) OrphanVolumeDelete(ctx context.Context, deleteAttachedOrphans bool, localVarOptionals *OrphanVolumeApiOrphanVolumeDeleteOpts) (OrphanVolumeDeleteResult, *http.Response, error) {
+func (a *OrphanSnapshotApiService) OrphanSnapshotsDelete(ctx context.Context, localVarOptionals *OrphanSnapshotApiOrphanSnapshotsDeleteOpts) (SnapshotDeleteResult, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		localVarReturnValue OrphanVolumeDeleteResult
+		localVarReturnValue SnapshotDeleteResult
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orphanvolumes"
+	localVarPath := a.client.cfg.BasePath + "/orphansnapshots"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("deleteAttachedOrphans", parameterToString(deleteAttachedOrphans, ""))
 	if localVarOptionals != nil && localVarOptionals.Datacenter.IsSet() {
 		localVarQueryParams.Add("datacenter", parameterToString(localVarOptionals.Datacenter.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.Datastores.IsSet() {
 		localVarQueryParams.Add("datastores", parameterToString(localVarOptionals.Datastores.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.SnapshotPrefix.IsSet() {
+		localVarQueryParams.Add("snapshotPrefix", parameterToString(localVarOptionals.SnapshotPrefix.Value(), ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
@@ -115,8 +118,8 @@ func (a *OrphanVolumeApiService) OrphanVolumeDelete(ctx context.Context, deleteA
 			body: localVarBody,
 			error: localVarHttpResponse.Status,
 		}
-		if localVarHttpResponse.StatusCode == 200 {
-			var v OrphanVolumeDeleteResult
+		if localVarHttpResponse.StatusCode == 202 {
+			var v SnapshotDeleteResult
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
 				if err != nil {
 					newErr.error = err.Error()
@@ -141,53 +144,56 @@ func (a *OrphanVolumeApiService) OrphanVolumeDelete(ctx context.Context, deleteA
 	return localVarReturnValue, localVarHttpResponse, nil
 }
 /*
-OrphanVolumeApiService List all the orphan volumes.
-Returns a list of orphan volumes for the given input parameters, which could be attached or detached. Since the detection of orphan volumes is an expensive operation, the operation is performed asynchronously at regular intervals. This API returns the list of orphan volumes found in the last run of the operation.  If the request is successful, the response will contain the following: 1. &#x60;TotalOrphans&#x60; - The total number of orphan volumes found. 2. &#x60;OrphanVolumes&#x60; - The list of orphan volumes found. 3. &#x60;RetryAfterMinutes&#x60; - The time in minutes after which the next retry should be attempted to get the updated orphan volume list. 4. &#x60;TotalOrphansAttached&#x60; - The total number of orphan volumes found that are attached to a VM. 5. &#x60;TotalOrphansDetached&#x60; - The total number of orphan volumes found that are detached. 6. &#x60;Limit&#x60; - The maximum number of orphan volumes to be returned. 7. &#x60;NextOffset&#x60; - The offset of the next page if there are more orphan volumes to query. Orphan volumes are safe to delete since there is no PersistentVolume in the Kubernetes cluster referring to them. 
+OrphanSnapshotApiService List all the orphan snapshots.
+Use this API to identify orphan snapshots. From vSphere CSI plugin&#x27;s perspective, orphan snapshots are FCD snapshots that were initiated through the vSphere CSI driver but do not have a corresponding VolumeSnapshotContent object in the Kubernetes cluster. snapshotPrefix is the prefix used in the snapshot description. Its default value is “snapshot”, which is also the default value used by snapshot sidecar in CSI and it can be configured based on prefix used in the snapshot sidecar. Use the &#x60;snapshotPrefix&#x60; parameter to specify alternate prefix.  From Velero vSphere plugin&#x27;s perspective, orphan snapshots are snapshots whose upload is failing with multiple attempts or snapshots whose local deletion is failing after successful upload. For Velero vSphere plugin, user has to specify “AstrolabeSnapshot” as the snapshotPrefix.  GET API for orphan snapshots support pagination. The response body contains totalOrphanSnapshots, limit and offset values. Also, response header contains X-Limit and X-Next-Offset values. Based on these values user can decide if there are more results to be fetched. Since the detection of orphan snapshots is an expensive operation, the operation is performed asynchronously at regular intervals. This API returns the list of orphan snapshots found in the last run of the operation. &#x60;retryAfterMinutes&#x60; in response body indicates the time in minutes after which the next retry should be attempted to get the updated orphan snapshot list.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param includeDetails Set to \&quot;true\&quot; to get a detailed dump of the orphan volume.
- * @param optional nil or *OrphanVolumeApiOrphanVolumeListOpts - Optional Parameters:
-     * @param "Datacenter" (optional.String) -  (Optional) Datacenter name to narrow down the orphan volume search.
+ * @param optional nil or *OrphanSnapshotApiOrphanSnapshotsListOpts - Optional Parameters:
+     * @param "Datacenter" (optional.String) -  (Optional) Datacenter name to narrow down the orphan snapshots search.
      * @param "Datastores" (optional.String) -  (Optional) List of comma-separated datastores. Specify only if the &#x60;datacenter&#x60; param is specified.
-     * @param "Offset" (optional.Int32) -  (Optional) The offset indicates the starting point of the result set.
-     * @param "Limit" (optional.Int32) -  (Optional) The limit indicates the maximum number of orphan volumes to be returned.
-@return OrphanVolumeResult
+     * @param "SnapshotPrefix" (optional.String) -  (Optional) The snapshot prefix indicates the prefix used in snapshot description.
+     * @param "Limit" (optional.Int64) -  (Optional) Limit specifies the maximum entries that should be displayed in single request.
+     * @param "Offset" (optional.Int64) -  (Optional) Offset specifies the starting point of the result set.
+@return OrphanSnapshotResult
 */
 
-type OrphanVolumeApiOrphanVolumeListOpts struct {
+type OrphanSnapshotApiOrphanSnapshotsListOpts struct {
     Datacenter optional.String
     Datastores optional.String
-    Offset optional.Int32
-    Limit optional.Int32
+    SnapshotPrefix optional.String
+    Limit optional.Int64
+    Offset optional.Int64
 }
 
-func (a *OrphanVolumeApiService) OrphanVolumeList(ctx context.Context, includeDetails bool, localVarOptionals *OrphanVolumeApiOrphanVolumeListOpts) (OrphanVolumeResult, *http.Response, error) {
+func (a *OrphanSnapshotApiService) OrphanSnapshotsList(ctx context.Context, localVarOptionals *OrphanSnapshotApiOrphanSnapshotsListOpts) (OrphanSnapshotResult, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		localVarReturnValue OrphanVolumeResult
+		localVarReturnValue OrphanSnapshotResult
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orphanvolumes"
+	localVarPath := a.client.cfg.BasePath + "/orphansnapshots"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("includeDetails", parameterToString(includeDetails, ""))
 	if localVarOptionals != nil && localVarOptionals.Datacenter.IsSet() {
 		localVarQueryParams.Add("datacenter", parameterToString(localVarOptionals.Datacenter.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.Datastores.IsSet() {
 		localVarQueryParams.Add("datastores", parameterToString(localVarOptionals.Datastores.Value(), ""))
 	}
-	if localVarOptionals != nil && localVarOptionals.Offset.IsSet() {
-		localVarQueryParams.Add("offset", parameterToString(localVarOptionals.Offset.Value(), ""))
+	if localVarOptionals != nil && localVarOptionals.SnapshotPrefix.IsSet() {
+		localVarQueryParams.Add("snapshotPrefix", parameterToString(localVarOptionals.SnapshotPrefix.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.Limit.IsSet() {
 		localVarQueryParams.Add("limit", parameterToString(localVarOptionals.Limit.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.Offset.IsSet() {
+		localVarQueryParams.Add("offset", parameterToString(localVarOptionals.Offset.Value(), ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
@@ -236,7 +242,7 @@ func (a *OrphanVolumeApiService) OrphanVolumeList(ctx context.Context, includeDe
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v OrphanVolumeResult
+			var v OrphanSnapshotResult
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
 				if err != nil {
 					newErr.error = err.Error()

@@ -51,7 +51,7 @@ Example:
 * Invoke `/registercluster` API on CNS manager by uploading the kubeconfig file. You may also modify other input parameters for the API based on your cluster configuration.
 The API can also be invoked from command line. Here is an example:
 ```
-curl -X 'POST' "http://CNS-MANAGER-ENDPOINT/1.0.0/registercluster?csiDriverSecretName=vsphere-config-secret&csiDriverSecretNamespace=vmware-system-csi" -H 'accept: application/json' -H 'Content-Type: multipart/form-data' -F 'clusterKubeConfigFile=@output_file_name' -u "Admistrator:Admin123@"
+curl -X 'POST' "http://CNS-MANAGER-ENDPOINT/1.0.0/registercluster?csiDriverSecretName=vsphere-config-secret&csiDriverNamespace=vmware-system-csi" -H 'accept: application/json' -H 'Content-Type: multipart/form-data' -F 'clusterKubeConfigFile=@output_file_name' -u "Admistrator:Admin123@"
 ```
 * Once the cluster is registered, you may delete this file from the machine.
 
@@ -66,3 +66,6 @@ This feature allows migrating volumes from one datastore to another. Read [here]
 
 * **Orphan volumes detection & deletion**  
 This feature allows detecting/deleting orphan volumes that are not being used in any of the registered Kubernetes clusters on the vCenter. Read [here](docs/book/features/orphan_volumes.md) for more details about this feature.
+
+* **Orphan snapshots detection & deletion**
+This feature allows detecting/deleting orphan snapshots that are not being used in any of the registered Kubernetes clusters on the vCenter. Read [here](docs/book/features/orphan_snapshots.md) for more details about this feature.

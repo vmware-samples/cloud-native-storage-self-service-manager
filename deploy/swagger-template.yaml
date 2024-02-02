@@ -19,8 +19,12 @@ tags:
     description: Operations invoked directly on datastores.
   - name: JobDetails
     description: Operations related to CNS manager asynchronous jobs.
-  - name: OrphanVolume	
+  - name: OrphanVolume
     description: Everything about orphan volumes.
+  - name: OrphanSnapshot
+    description: Everything about orphan snapshots.
+  - name: SnapshotForVolume
+    description: Operations related to volume Snapshots.
 paths:
   /listregisteredclusters:
     get:
@@ -49,11 +53,13 @@ paths:
     post:
       tags:
         - ClusterRecordKeeping
-      summary: Register a cluster with the CNS Manager.
-      description: "The API takes kubeconfig of a given cluster as an input. Make sure to copy the \
-        \ contents of the Cluster KubeConfig to a file. The kubeconfig is stored securely inside \
-        \ a k8s secret on the cluster where CNS manager is deployed. The API additionally takes optional \
-        \ params to read cluster-id set for CSI driver from the CSI secret."
+      summary: Register a Kubernetes cluster with CNS Manager.
+      description: >
+        The API takes kubeconfig of a given cluster as an input. Make sure to copy the
+        contents of the Cluster KubeConfig to a file. The kubeconfig is stored securely inside
+        a k8s secret on the cluster where CNS manager is deployed. 
+        The API additionally takes optional params like CSI driver clusterId or CSI driver namespace and config secret name 
+        to read cluster-id from the CSI secret.
       operationId: registercluster
       requestBody:
         content:
@@ -65,29 +71,40 @@ paths:
                   type: string
                   format: binary
                   description: A file with cluster kubeconfig content.
-                  allowEmptyValue: false
-                  required: true
               required:
                 - clusterKubeConfigFile
       parameters:
         - name: csiDriverSecretName
           in: query
-          description: Refers to the name of the config secret of vsphere-csi-driver.
+          description: (Optional) Refers to the name of the config secret of vsphere-csi-driver.
           style: form
           explode: true
           schema:
             type: string
             format: string
             default: vsphere-config-secret
-        - name: csiDriverSecretNamespace
+        - name: csiDriverNamespace
           in: query
-          description: Refers to the namespace of the config secret of vsphere-csi-driver.
+          description: (Optional) Refers to the namespace of vsphere-csi-driver.
           style: form
           explode: true
           schema:
             type: string
-            format: string   
+            format: string
             default: vmware-system-csi
+        - name: clusterId
+          in: query
+          description: >
+            (Optional) Cluster Id of the cluster to be registered with the CNS Manager. 
+            This cluster Id needs to be the same that's used in the vSphere CSI driver config of the Kubernetes cluster. 
+            For vanilla Kubernetes distributions deployed using [VMware's recommended way](https://docs.vmware.com/en/VMware-vSphere-Container-Storage-Plug-in/2.0/vmware-vsphere-csp-getting-started/GUID-BFF39F1D-F70A-4360-ABC9-85BDAFBE8864.html), 
+            it will be present in the CSI secret and will be auto-computed from the provided kubeConfig. 
+            For other Kubernetes distributions, please check their docs to determine how they're configuring clusterId for the vSphere CSI driver in the Kubernetes cluster.
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
       responses:
         "200":
           description: Returns RegisterClusterResult.
@@ -202,9 +219,9 @@ paths:
         - name: sourceDatastore
           in: query
           description: "(Optional) Name of the source datastore. Specify only if all\
-          \ volumes from source datastore need to be migrated to destination datastore,\
-          \ and don't specify fcd Ids in that case. If specific list of fcd Ids is\
-          \ provided, then source datastore field will be ignored."
+            \ volumes from source datastore need to be migrated to destination datastore,\
+            \ and don't specify fcd Ids in that case. If specific list of fcd Ids is\
+            \ provided, then source datastore field will be ignored."
           required: false
           style: form
           explode: true
@@ -223,7 +240,7 @@ paths:
         - name: fcdIdsToMigrate
           in: query
           description: "(Optional) Array of FCD ids to migrate. If not specified, all\
-          \ volumes from source datastore will be migrated to destination datastore."
+            \ volumes from source datastore will be migrated to destination datastore."
           required: false
           style: form
           explode: true
@@ -244,9 +261,9 @@ paths:
         - name: skipVolumeAccessibilityCheck
           in: query
           description: "(Optional) If this flag is set to 'true', it will force migrate the volumes without\
-          \ checking if they will be accessible on target datastore from all cluster nodes(or topology-matching\
-          \ nodes in a topology-aware environment). This may affect the application availability if it gets scheduled\
-          \ on a cluster node that can't access the target datastore. So it's NOT recommended to set this flag to true."
+            \ checking if they will be accessible on target datastore from all cluster nodes(or topology-matching\
+            \ nodes in a topology-aware environment). This may affect the application availability if it gets scheduled\
+            \ on a cluster node that can't access the target datastore. So it's NOT recommended to set this flag to true."
           required: false
           style: form
           explode: true
@@ -306,22 +323,22 @@ paths:
   /waitforjob:
     get:
       tags:
-      - JobDetails
+        - JobDetails
       summary: Wait until a job is successful or failed.
       description: "This is a blocking API that waits for job to get successful or \n\
         fail. Unlike `getJobStatus` API which fetches the current\nstatus of the job,\
         \ this will wait for the job to finish before \nreturning the job result response."
       operationId: waitForJob
       parameters:
-      - name: jobId
-        in: query
-        description: Job Id for which to wait to complete.
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-          format: string
+        - name: jobId
+          in: query
+          description: Job Id for which to wait to complete.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
       responses:
         "200":
           description: Returns JobResult.
@@ -332,10 +349,10 @@ paths:
   /suspendvolumeprovisioning:
     post:
       tags:
-      - DatastoreOperations
+        - DatastoreOperations
       summary: Suspend Create Volume operation on datastore.
       description: "This API will block creation of new File and Block volumes on the specified datastore. To unblock volume provisioning, invoke ResumeVolumeProvisioning API. \n\
-      Other volume operations like attach, detach, delete etc. will not get affected for existing volumes."
+        Other volume operations like attach, detach, delete etc. will not get affected for existing volumes."
       operationId: suspendVolumeProvisioning
       parameters:
         - name: datacenter
@@ -372,7 +389,7 @@ paths:
   /resumevolumeprovisioning:
     post:
       tags:
-      - DatastoreOperations
+        - DatastoreOperations
       summary: Resume Create Volume operation on datastore.
       description: "This API will unblock creation of new File and Block volumes on the specified datastore. To block volume provisioning, invoke SuspendVolumeProvisioning API."
       operationId: resumeVolumeProvisioning
@@ -408,132 +425,519 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /orphanvolumes:	
-    get:	
-      tags:	
-      - OrphanVolume	
-      summary: List all the orphan volumes.	
-      description: >-
-        Returns a list of orphan volumes for the given input parameters, which could be attached or detached.	
-        Since the detection of orphan volumes is an expensive operation, the operation is performed asynchronously at regular intervals.	
-        This API returns the list of orphan volumes found in the last run of the operation.	
-        	
-        	
-        The response body contains the following fields:	
-        1. `TotalOrphans` - The total number of orphan volumes found.	
-        	
-        2. `OrphanVolumes` - The list of orphan volumes found.	
-        	
-        3. `RetryAfterMinutes` - The time in minutes after which the next retry should be attempted to get the updated orphan volume list.	
-        	
-        4. `TotalOrphansAttached` - The total number of orphan volumes found that are attached to a VM.	
-        	
-        5. `TotalOrphansDetached` - The total number of orphan volumes found that are detached.	
-        	
-        	
-        Orphan volumes are safe to delete since there is no PersistentVolume in the Kubernetes cluster referring to them.	
-      operationId: orphanVolumeList	
-      parameters:	
-        - name: includeDetails	
-          in: query	
-          description: Set to "true" to get a detailed dump of the orphan volume.	
-          required: true	
-          style: form	
-          explode: true	
-          schema:	
-            type: boolean	
-            format: boolean	
-            default: false	
-        - name: datacenter	
-          in: query	
-          description: (Optional) Datacenter name to narrow down the orphan volume search.	
-          required: false	
-          style: form	
-          explode: true	
-          schema:	
-            type: string	
-            format: string	
-        - name: datastores	
-          in: query	
-          description: (Optional) List of comma-separated datastores. Specify only if	
-            the `datacenter` param is specified.	
-          required: false	
-          style: form	
-          explode: true	
-          schema:	
-            type: string	
-            format: string	
-      responses:	
-        "200":	
-          description: Returns OrphanVolumeResult.	
-          content:	
-            application/json:	
-              schema:	
-                $ref: '#/components/schemas/OrphanVolumeResult'	
-          headers:	
-            X-Retry-After:	
-              description: The number of seconds to wait before retrying the request.	
-              schema:	
-                type: string	
-        default:	
-          description: unexpected error	
-          content:	
-            application/json:	
-              schema:	
-                $ref: '#/components/schemas/Error'	
-    delete:	
-      tags:	
-        - OrphanVolume	
-      summary: Delete orphan volumes.	
-      description: Delete the orphan volumes for the given criteria.	
-      operationId: orphanVolumeDelete	
-      parameters:	
-        - name: deleteAttachedOrphans	
-          in: query	
-          description: >-	
-            Set to `true` to delete attached orphans. When set to `true`, 	
-            the API will detach the orphan volume from the VM before deleting it.	
-          required: true	
-          style: form	
-          explode: true	
-          schema:	
-            type: boolean	
-            format: boolean	
-            default: false	
-        - name: datacenter	
-          in: query	
-          description: (Optional) Datacenter name to narrow down the deletion of orphan volumes to.	
-          required: false	
-          style: form	
-          explode: true	
-          schema:	
-            type: string	
-            format: string	
-        - name: datastores	
-          in: query	
-          description: (Optional) List of comma-separated datastores to narrow down	
-            the deletion of orphan volumes to. Specify only if the `datacenter` param	
-            is specified.	
-          required: false	
-          style: form	
-          explode: true	
-          schema:	
-            type: string	
-            format: string	
-      responses:	
-        "200":	
-          description: Returns OrphanVolumeDeleteResult.	
-          content:	
-            application/json:	
-              schema:	
-                $ref: '#/components/schemas/OrphanVolumeDeleteResult'	
-        default:	
-          description: unexpected error	
-          content:	
-            application/json:	
-              schema:	
+  /orphanvolumes:
+    get:
+      tags:
+        - OrphanVolume
+      summary: List all the orphan volumes.
+      description: >
+        Returns a list of orphan volumes for the given input parameters, which could be attached or detached.
+        Since the detection of orphan volumes is an expensive operation, the operation is performed asynchronously at regular intervals.
+        This API returns the list of orphan volumes found in the last run of the operation.
+        
+        
+        If the request is successful, the response will contain the following:
+
+        1. `TotalOrphans` - The total number of orphan volumes found.
+        
+        2. `OrphanVolumes` - The list of orphan volumes found.
+        
+        3. `RetryAfterMinutes` - The time in minutes after which the next retry should be attempted to get the updated orphan volume list.
+        
+        4. `TotalOrphansAttached` - The total number of orphan volumes found that are attached to a VM.
+        
+        5. `TotalOrphansDetached` - The total number of orphan volumes found that are detached.
+        
+        6. `Limit` - The maximum number of orphan volumes to be returned.
+        
+        7. `NextOffset` - The offset of the next page if there are more orphan volumes to query.
+        
+        Orphan volumes are safe to delete since there is no PersistentVolume in the Kubernetes cluster referring to them.
+      operationId: orphanVolumeList
+      parameters:
+        - name: includeDetails
+          in: query
+          description: Set to "true" to get a detailed dump of the orphan volume.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: boolean
+            format: boolean
+            default: false
+        - name: datacenter
+          in: query
+          description: (Optional) Datacenter name to narrow down the orphan volume search.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: datastores
+          in: query
+          description: (Optional) List of comma-separated datastores. Specify only if
+            the `datacenter` param is specified.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - $ref: '#/components/parameters/PageOffset'
+        - $ref: '#/components/parameters/PageLimit'
+      responses:
+        "200":
+          description: Returns OrphanVolumeResult.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrphanVolumeResult'
+          headers:
+            X-Retry-After:
+              $ref: '#/components/headers/X-Retry-After'
+            X-Limit:
+              $ref: '#/components/headers/X-Limit'
+            X-Next-Offset:
+              $ref: '#/components/headers/X-Next-Offset'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - OrphanVolume
+      summary: Delete orphan volumes.
+      description: Delete the orphan volumes for the given criteria.
+      operationId: orphanVolumeDelete
+      parameters:
+        - name: deleteAttachedOrphans
+          in: query
+          description: >-
+            Set to `true` to delete attached orphans. When set to `true`, 
+            the API will detach the orphan volume from the VM before deleting it.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: boolean
+            format: boolean
+            default: false
+        - name: datacenter
+          in: query
+          description: (Optional) Datacenter name to narrow down the deletion of orphan volumes to.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: datastores
+          in: query
+          description: (Optional) List of comma-separated datastores to narrow down
+            the deletion of orphan volumes to. Specify only if the `datacenter` param
+            is specified.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+      responses:
+        "200":
+          description: Returns OrphanVolumeDeleteResult.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrphanVolumeDeleteResult'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /orphansnapshots:
+    get:
+      tags:
+        - OrphanSnapshot
+      summary: List all the orphan snapshots.
+      description: |-
+        Use this API to identify orphan snapshots. From vSphere CSI plugin's perspective,
+        orphan snapshots are FCD snapshots that were initiated through the vSphere CSI driver
+        but do not have a corresponding VolumeSnapshotContent object in the Kubernetes cluster.
+        snapshotPrefix is the prefix used in the snapshot description. Its default value is “snapshot”,
+        which is also the default value used by snapshot sidecar in CSI and it can be configured based
+        on prefix used in the snapshot sidecar. Use the `snapshotPrefix` parameter to specify alternate
+        prefix.
+
+        From Velero vSphere plugin's perspective, orphan snapshots are snapshots whose upload is failing
+        with multiple attempts or snapshots whose local deletion is failing after successful upload.
+        For Velero vSphere plugin, user has to specify “AstrolabeSnapshot” as the snapshotPrefix.
+
+        GET API for orphan snapshots support pagination. The response body contains totalOrphanSnapshots,
+        limit and offset values. Also, response header contains X-Limit and X-Next-Offset values. Based on these
+        values user can decide if there are more results to be fetched.
+        Since the detection of orphan snapshots is an expensive operation, the operation is performed asynchronously
+        at regular intervals. This API returns the list of orphan snapshots found in the last run of the operation.
+        `retryAfterMinutes` in response body indicates the time in minutes after which the next retry should be
+        attempted to get the updated orphan snapshot list.
+      operationId: orphanSnapshotsList
+      parameters:
+        - name: datacenter
+          in: query
+          description: (Optional) Datacenter name to narrow down the orphan snapshots
+            search.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: datastores
+          in: query
+          description: (Optional) List of comma-separated datastores. Specify only if
+            the `datacenter` param is specified.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: snapshotPrefix
+          in: query
+          description: (Optional) The snapshot prefix indicates the prefix used in snapshot description.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+            default: snapshot
+        - name: limit
+          in: query
+          description: (Optional) Limit specifies the maximum entries that should be displayed in single request.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int64
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          description: (Optional) Offset specifies the starting point of the result set.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int64
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: Returns list of orphan snapshots.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrphanSnapshotResult'
+          headers:
+            X-Limit:
+              description: The maximum entries that are displayed in single request.
+              schema:
+                type: string
+            X-Next-Offset:
+              description: The starting point of the next result set.
+              schema:
+                type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - OrphanSnapshot
+      summary: Delete orphan snapshots.
+      description: |-
+        Use this API to identify and delete orphan snapshots. From vSphere CSI plugin's perspective,
+        orphan snapshots are FCD snapshots that were initiated through the vSphere CSI driver
+        but do not have a corresponding VolumeSnapshotContent object in the Kubernetes cluster.
+        snapshotPrefix is the prefix used in the snapshot description. Its default value is “snapshot”,
+        which is also the default value used by snapshot sidecar in CSI and it can be configured based
+        on prefix used in the snapshot sidecar. Use the `snapshotPrefix` parameter to specify alternate
+        prefix.
+
+        From Velero vSphere plugin's perspective, orphan snapshots are snapshots whose upload is failing
+        with multiple attempts or snapshots whose local deletion is failing after successful upload.
+        For Velero vSphere plugin, user has to specify “AstrolabeSnapshot” as the snapshotPrefix.
+
+        Orphan snapshot deletion operation is performed asynchronously. It returns a job id,
+        the status of which can be retrieved using `jobStatus` API.
+      operationId: orphanSnapshotsDelete
+      parameters:
+        - name: datacenter
+          in: query
+          description: (Optional) Datacenter name to narrow down the orphan snapshots
+            search.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: datastores
+          in: query
+          description: (Optional) List of comma-separated datastores. Specify only if
+            the `datacenter` param is specified.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: snapshotPrefix
+          in: query
+          description: (Optional) The snapshot prefix indicates the prefix used in snapshot description.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+            default: snapshot
+      responses:
+        "202":
+          description: Returns a job Id, status of which can be fetched using jobStatus API.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotDeleteResult'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /volumes/{volumeId}/snapshots:
+    get:
+      tags:
+        - SnapshotForVolume
+      summary: List all the snapshots for a specific volume
+      description: |-
+        Use this API to retrieve all the snapshots for a specific volume.
+      operationId: ListAllSnapshotsForVolume
+      parameters:
+        - name: volumeId
+          in: path
+          description: Unique Id of the volume.
+          required: true
+          schema:
+            type: string
+            format: string
+        - name: datacenter
+          in: query
+          description: Datacenter name to which volume and snapshots belong to.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: datastore
+          in: query
+          description: Datastore name to which volume and snapshots belong to.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: snapshotPrefix
+          in: query
+          description: |-
+            (Optional) The snapshot prefix indicates the prefix used in snapshot description.
+            If snapshot prefix is not specified, then it will list all snapshots of a volume.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+      responses:
+        200:
+          description: Returns details of all snapshots of a volume.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotsForVolumeResult'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - SnapshotForVolume
+      summary: Delete all the snapshots for a specific volume
+      description: |-
+        Use this API to delete all the snapshots for a specific volume.
+        Snapshot deletion operation is performed asynchronously. It returns a job id,
+        the status of which can be retrieved using `jobStatus` API.
+      operationId: deleteAllSnapshotsForVolume
+      parameters:
+        - name: volumeId
+          in: path
+          description: Unique Id of the volume.
+          required: true
+          schema:
+            type: string
+            format: string
+        - name: datacenter
+          in: query
+          description: Datacenter name to which volume and snapshots belong to.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: datastore
+          in: query
+          description: Datastore name to which volume and snapshots belong to.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: snapshotPrefix
+          in: query
+          description: |-
+            (Optional) The snapshot prefix indicates the prefix used in snapshot description.
+            If snapshot prefix is not specified, then it will delete all snapshots of a volume.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+      responses:
+        202:
+          description: Returns a job Id, status of which can be fetched using jobStatus API.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotDeleteResult'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /volumes/{volumeId}/snapshots/{snapshotId}:
+    delete:
+      tags:
+        - SnapshotForVolume
+      summary: Delete one specific snapshot for volume
+      description: |-
+        Use this API to delete the specific snapshot of a volume.
+        Snapshot deletion operation is performed asynchronously. It returns a job id,
+        the status of which can be retrieved using `jobStatus` API.
+      operationId: deleteSnapshotForVolume
+      parameters:
+        - name: volumeId
+          in: path
+          description: Unique Id of the volume.
+          required: true
+          schema:
+            type: string
+            format: string
+        - name: snapshotId
+          in: path
+          description: Unique Id of the snapshot.
+          required: true
+          schema:
+            type: string
+            format: string
+        - name: datacenter
+          in: query
+          description: Datacenter name to which volume and snapshot belongs to.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+        - name: datastore
+          in: query
+          description: Datastore name to which volume and snapshot belongs to.
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            format: string
+      responses:
+        202:
+          description: Returns a job Id, status of which can be fetched using jobStatus API.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotDeleteResult'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/Error'
 components:
+  headers:
+    X-Retry-After:
+      required: false
+      description: The number of seconds to wait before retrying the request.
+      schema:
+        type: string
+    X-Limit:
+      required: false
+      description: The maximum entries that are displayed in single request.
+      schema:
+        type: string
+    X-Next-Offset:
+      required: false
+      description: The starting point of the next result set.
+        This field is returned only if there are more orphan volumes to query.
+      schema:
+        type: string
+  parameters:
+    PageLimit:
+      name: limit
+      in: query
+      description: |-
+        (Optional) The limit indicates the maximum number of orphan volumes
+        to be returned.
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 2500
+    PageOffset:
+      name: offset
+      in: query
+      description: |-
+        (Optional) The offset indicates the starting point of the result
+        set.
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
   schemas:
     Error:
       required:
@@ -608,11 +1012,13 @@ components:
           description: Input parameters of the job.
           oneOf:
             - $ref: '#/components/schemas/VolumeMigrationJobParameters'
+            - $ref: '#/components/schemas/SnapshotDeletionJobParameters'
         jobStatus:
           type: object
           description: Status of individual tasks and the overall job status.
           oneOf:
             - $ref: '#/components/schemas/VolumeMigrationJobStatus'
+            - $ref: '#/components/schemas/SnapshotDeletionJobStatus'
       example:
         phase: Running
         jobId: volumemigrationjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
@@ -806,17 +1212,17 @@ components:
         message:
           type: string
           description: Result of suspending volume provisioning on datastore.
-          example: "Successfully suspended volume provisioning on datstore nfs0-1."
+          example: "Successfully suspended volume provisioning on datastore nfs0-1."
       example:
-        message: Successfully suspended volume provisioning on datstore nfs0-1.
+        message: Successfully suspended volume provisioning on datastore nfs0-1.
     ResumeVolumeProvisioningResult:
       properties:
         message:
           type: string
           description: Result of resuming volume provisioning on datastore.
-          example: "Successfully resumed volume provisioning on datstore nfs0-1."
+          example: "Successfully resumed volume provisioning on datastore nfs0-1."
       example:
-        message: Successfully resumed volume provisioning on datstore nfs0-1.
+        message: Successfully resumed volume provisioning on datastore nfs0-1.
     OrphanVolumeDetails:
       type: object
       description: OrphanVolumeDetails represents if the orphan volume is attached to a VM or not.
@@ -888,30 +1294,36 @@ components:
       properties:
         totalOrphans:
           type: integer
-          description: The total orphan volumes returned.
-          format: int64
+          description: The total number of orphan volumes returned.
           example: 1
         totalOrphansAttached:
           type: integer
-          description: This field is set only if includeDetails is set to true.
-          format: int64
+          description: The total number of orphan volumes that are attached to a VM.
+            This field is returned only if includeDetails is set to true.
           example: 1
         totalOrphansDetached:
           type: integer
-          description: This field is set only if includeDetails is set to true.
-          format: int64
+          description: The total number of orphan volumes that are not attached to a VM.
+            This field is set only if includeDetails is set to true.
           example: 1
         orphanVolumes:
           type: array
-          description: Array of orphan volumes
+          description: Array of orphan volumes.
           items:
             $ref: '#/components/schemas/OrphanVolume'
         retryAfterMinutes:
           type: integer
           description: The time in minutes after which the next retry should be
             attempted to get the updated orphan volume list.
-          format: int64
           example: 1
+        limit:
+          type: integer
+          description: The maximum number of orphan volumes returned.
+          example: 100
+        nextOffset:
+          type: integer
+          description: The offset of the next page if there are more orphan volumes to query.
+          example: 100
       example:
         totalOrphansAttached: 2
         totalOrphansDetached: 1
@@ -943,7 +1355,9 @@ components:
               attached: false
             capacityInMb: 100
         totalOrphans: 3
-        retryAfter: 10
+        retryAfterMinutes: 10
+        limit: 3
+        nextOffset: 3
     OrphanVolumeDeleteResult:
       type: object
       description: OrphanVolumeDeleteResult is the result of deleting orphan volumes.
@@ -1020,3 +1434,226 @@ components:
       example:
         volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
         reason: Failed to delete orphan volume
+    OrphanSnapshotResult:
+      properties:
+        totalOrphanSnapshots:
+          type: integer
+          description: The total orphan snapshots returned.
+          format: int64
+          example: 1
+        limit:
+          type: integer
+          description: Limit specifies the maximum number of entries that are displayed in single request.
+          format: int64
+          example: 50
+        offset:
+          type: integer
+          description: Offset specifies the starting point of the result set.
+          format: int64
+          example: 0
+        orphanSnapshots:
+          type: array
+          description: Array of orphan snapshots
+          items:
+            $ref: '#/components/schemas/OrphanSnapshot'
+        retryAfterMinutes:
+          type: integer
+          description: Since the detection of orphan snapshots is an expensive operation,
+            the operation is performed asynchronously at regular intervals. This API returns
+            the list of orphan snapshots found in the last run of the operation.
+            `retryAfterMinutes` indicates the time in minutes after which the next retry should be
+            attempted to get the updated orphan snapshot list.
+          format: int64
+          example: 60
+      example:
+        totalOrphanSnapshots: 2
+        limit: 50
+        offset: 0
+        orphanSnapshots:
+          - volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
+            volumeSnapshotId: 74d6787e-397b-4c99-a151-c6f37c49fcff
+            datacenter: DC-1
+            datastore: vsanDatastore
+            createTime: 2021-07-23 19:19:59.365062 +0000 UTC
+            snapshotDescription: Sample
+          - volumeId: 84d6787e-397b-4c99-a151-c6f37c49fcff
+            volumeSnapshotId: 94d6787e-397b-4c99-a151-c6f37c49fcff
+            datacenter: DC-1
+            datastore: vsanDatastore
+            createTime: 2021-07-23 19:19:59.365063 +0000 UTC
+            snapshotDescription: Sample2
+        retryAfterMinutes: 60
+    OrphanSnapshot:
+      properties:
+        volumeId:
+          type: string
+          description: FCD Id of the orphan snapshot.
+          example: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        volumeSnapshotId:
+          type: string
+          description: Snapshot Id of the orphan snapshot.
+          example: 74d6787e-397b-4c99-a151-c6f37c49fcff
+        datacenter:
+          type: string
+          description: Datacenter where the orphan snapshot is located.
+          example: DC-1
+        datastore:
+          type: string
+          description: Datastore where the orphan snapshot is located.
+          example: vsanDatastore
+        createTime:
+          type: string
+          description: Create time of the orphan snapshot.
+          example: 2021-07-23 19:19:59.365062 +0000 UTC
+        snapshotDescription:
+          type: string
+          description: Description of orphan snapshot
+          example: Sample
+      example:
+        volumeId: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        volumeSnapshotId: 74d6787e-397b-4c99-a151-c6f37c49fcff
+        datacenter: DC-1
+        datastore: vsanDatastore
+        createTime: 2021-07-23 19:19:59.365062 +0000 UTC
+        snapshotDescription: Sample
+    SnapshotDeleteResult:
+      properties:
+        jobId:
+          type: string
+          description: Identifier of the snapshot deletion job submitted
+          example: snapshotdeletionjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
+      example:
+        jobId: snapshotdeletionjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
+    SnapshotDeletionJobParameters:
+      properties:
+        fcdId:
+          type: string
+          description: fcdId is the identifier of FCD.
+          example: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        snapshotId:
+          type: string
+          description: snapshotId is the identifier of snapshot.
+          example: 785g347e-397b-4c99-a151-c6f37c805gh98
+        datacenter:
+          type: string
+          description: datacenter to which snapshots belong.
+          example: VSAN-DC
+        datastores:
+          type: array
+          description: datastores to which snapshots belong.
+          items:
+            type: string
+        snapshotPrefix:
+          type: string
+          description: snapshotPrefix is the prefix used in the snapshot description.
+          example: snapshot
+    SnapshotDeletionJobStatus:
+      properties:
+        totalSnapshotsPlannedForDeletion:
+          type: integer
+          description: Total snapshots which will be deleted as part of this job.
+          format: int32
+          example: 2
+        totalSnapshotsSuccessfullyDeleted:
+          type: integer
+          description: Total snapshots which got successfully deleted as part of this job.
+          format: int32
+          example: 2
+        totalSnapshotsWithFailedDeletion:
+          type: integer
+          description: Total snapshots whose deletion failed as part of this job.
+          format: int32
+          example: 0
+        startTime:
+          type: string
+          description: Time at which the job started processing.
+          format: date-time
+          example: "2022-02-18T22:28:54Z"
+        endTime:
+          type: string
+          description: Time at which the job completed processing.
+          format: date-time
+          example: "2022-02-18T22:29:01Z"
+        snapshotDeletionTasks:
+          type: array
+          description: Array of status of individual snapshot deletion tasks in the
+            job.
+          items:
+            $ref: '#/components/schemas/SnapshotDeletionTaskStatus'
+    SnapshotDeletionTaskStatus:
+      properties:
+        fcdId:
+          type: string
+          description: Id of the FCD to which snapshot belongs.
+          example: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        snapshotId:
+          type: string
+          description: Id of the snapshot to be deleted.
+          example: 785g347e-397b-4c99-a151-c6f37c805gh98
+        datacenter:
+          type: string
+          description: datacenter to which snapshot belongs.
+          example: VSAN-DC
+        datastore:
+          type: string
+          description: datastore to which snapshot belongs.
+          example: vsanDatastore
+        snapshotDescription:
+          type: string
+          description: description of the snapshot.
+          example: AstrolabeSnapshot
+        phase:
+          type: string
+          description: Current phase of the snapshot deletion task.
+          example: Success
+          enum:
+            - Queued
+            - Running
+            - Success
+            - Error
+        taskStartTime:
+          type: string
+          description: The timestamp at which the task was invoked.
+          format: date-time
+          example: "2022-02-18T22:28:54Z"
+        taskEndTime:
+          type: string
+          description: The timestamp at which the task finished.
+          format: date-time
+          example: "2022-02-18T22:28:54Z"
+        error:
+          $ref: "#/components/schemas/Fault"
+    SnapshotsForVolumeResult:
+      properties:
+        Snapshots:
+          $ref: '#/components/schemas/SnapshotDetails'
+    SnapshotDetails:
+      properties:
+        snapshotId:
+          type: string
+          description: Id of the snapshot.
+          example: 74d6787e-397b-4c99-a151-c6f37c49fcff
+        volumeId:
+          type: string
+          description: Id of the volume.
+          example: 64d6787e-397b-4c99-a151-c6f37c49fcff
+        createTime:
+          type: string
+          description: Time when snapshot is created.
+          example: "2022-12-22 19:57:09.250871 +0000 UTC"
+        snapshotDescription:
+          type: string
+          description: Description of the snapshot.
+          example: Sample
+        velerovSpherePluginSnapshotPhase:
+          type: string
+          description: Phase of the sanpshot if it is created by Velero vSphere plugin.
+          example: Uploaded
+        associatedVolumeSnapshotContent:
+          type: string
+          description: Associated VolumeSnapshotContent name if snapshot is created by CSI driver.
+          example: snapcontent-72cafd03-b848-4628-b41f-2194cffc71d0
+        owner:
+          type: string
+          description: Owner who created this snapshot. e.g. vSphere CSI driver, Velero vSphere plugin etc.
+          example: vSphere CSI driver

@@ -17,7 +17,7 @@ TLS_FLAG=$6
 
 if ! [ $AUTH_MECHANISM == "basicauth" -o $AUTH_MECHANISM == "oauth2" ]
 then
-	echo "Auth mechanism needs to be either basicauth or auth2."
+	echo "Auth mechanism needs to be either basicauth or oauth2."
 	exit 1
 fi
 

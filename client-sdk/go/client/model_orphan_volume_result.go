@@ -17,14 +17,18 @@ limitations under the License.
 package swagger
 
 type OrphanVolumeResult struct {
-	// The total orphan volumes returned.
-	TotalOrphans int64 `json:"totalOrphans"`
-	// This field is set only if includeDetails is set to true.
-	TotalOrphansAttached int64 `json:"totalOrphansAttached,omitempty"`
-	// This field is set only if includeDetails is set to true.
-	TotalOrphansDetached int64 `json:"totalOrphansDetached,omitempty"`
-	// Array of orphan volumes
+	// The total number of orphan volumes returned.
+	TotalOrphans int32 `json:"totalOrphans"`
+	// The total number of orphan volumes that are attached to a VM. This field is returned only if includeDetails is set to true.
+	TotalOrphansAttached int32 `json:"totalOrphansAttached,omitempty"`
+	// The total number of orphan volumes that are not attached to a VM. This field is set only if includeDetails is set to true.
+	TotalOrphansDetached int32 `json:"totalOrphansDetached,omitempty"`
+	// Array of orphan volumes.
 	OrphanVolumes []OrphanVolume `json:"orphanVolumes"`
 	// The time in minutes after which the next retry should be attempted to get the updated orphan volume list.
-	RetryAfterMinutes int64 `json:"retryAfterMinutes"`
+	RetryAfterMinutes int32 `json:"retryAfterMinutes"`
+	// The maximum number of orphan volumes returned.
+	Limit int32 `json:"limit,omitempty"`
+	// The offset of the next page if there are more orphan volumes to query.
+	NextOffset int32 `json:"nextOffset,omitempty"`
 }

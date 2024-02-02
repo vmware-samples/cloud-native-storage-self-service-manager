@@ -6,7 +6,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: cns-manager
+  name: cns-manager-syspriv-rolebinding
 subjects:
   - kind: ServiceAccount
     name: cns-manager
@@ -38,13 +38,13 @@ spec:
           properties:
             apiVersion:
               description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                of an object. Servers should convert recognized schemas to the latest
+                internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
               type: string
             kind:
               description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                object represents. Servers may infer this from the endpoint the client
+                submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
               type: string
             metadata:
               type: object
@@ -96,13 +96,13 @@ spec:
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
             description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -180,13 +180,13 @@ spec:
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
             description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -238,6 +238,185 @@ status:
   conditions: []
   storedVersions: []
 ---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  name: snapshotdeletionjobs.cnsmanager.cns.vmware.com
+spec:
+  group: cnsmanager.cns.vmware.com
+  names:
+    kind: SnapshotDeletionJob
+    listKind: SnapshotDeletionJobList
+    plural: snapshotdeletionjobs
+    singular: snapshotdeletionjob
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: SnapshotDeletionJob is the Schema for the snapshotdeletionjobs
+          API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: SnapshotDeletionJobSpec defines the desired state of SnapshotDeletionJob
+            properties:
+              datacenter:
+                description: Datacenter refers to the datacenter the snapshot belongs to.
+                type: string
+              datastores:
+                description: Datastores refer to the datastores to which snapshots
+                  belong.
+                items:
+                  type: string
+                type: array
+              fcdId:
+                description: FcdId refers to the Id of FCD
+                type: string
+              snapshotPrefix:
+                default: snapshot
+                description: SnapshotPrefix is the prefix used in the snapshot name.
+                type: string
+              snapshotId:
+                description: SnapshotId refers to Id of the snapshot
+                type: string
+            required:
+            - snapshotPrefix
+            type: object
+          status:
+            description: SnapshotDeletionJobStatus defines the observed state of SnapshotDeletionJob
+            properties:
+              endTime:
+                description: End time of the snapshot deletion job
+                format: date-time
+                type: string
+              overallPhase:
+                description: Overall phase of the snapshot deletion job
+                type: string
+              snapshotDeletionTasks:
+                description: Name of snapshotdeletiontask instances created for each
+                  snapshot.
+                items:
+                  type: string
+                type: array
+              startTime:
+                description: Start time of the snapshot deletion job
+                format: date-time
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  name: snapshotdeletiontasks.cnsmanager.cns.vmware.com
+spec:
+  group: cnsmanager.cns.vmware.com
+  names:
+    kind: SnapshotDeletionTask
+    listKind: SnapshotDeletionTaskList
+    plural: snapshotdeletiontasks
+    singular: snapshotdeletiontask
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: SnapshotDeletionTask is the Schema for the snapshotdeletiontasks
+          API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: SnapshotDeletionTaskSpec defines the desired state of SnapshotDeletionTask
+            properties:
+              datacenter:
+                description: Datacenter refers to the datacenter the snapshot belongs to
+                type: string
+              datastore:
+                description: Datastore refers to the datastore to which snapshot belongs
+                type: string
+              fcdId:
+                description: FcdId refers to Id of FCD
+                type: string
+              snapshotId:
+                description: SnapshotId refers to Id of the snapshot
+                type: string
+            required:
+            - datacenter
+            - datastore
+            - fcdId
+            - snapshotId
+            type: object
+          status:
+            description: SnapshotDeletionTaskStatus defines the observed state of
+              SnapshotDeletionTask
+            properties:
+              cnsTaskId:
+                description: CnsTaskID refers to the task ID in CNS for snapshot deletion
+                type: string
+              endTime:
+                description: Time at which the task finished processing.
+                format: date-time
+                type: string
+              error:
+                description: Error indicates any error while running the task
+                type: string
+              phase:
+                description: Phase describes the current phase of the task
+                type: string
+              snapshotDescription:
+                description: SnapshotDescription refers to the description of the
+                  snapshot.
+                type: string
+              startTime:
+                description: The timestamp at which the task was invoked
+                format: date-time
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -250,6 +429,8 @@ rules:
       - orphanvolumestats
       - volumemigrationjobs
       - volumemigrationtasks
+      - snapshotdeletionjobs
+      - snapshotdeletiontasks
     verbs:
       - create
       - delete
@@ -264,6 +445,8 @@ rules:
       - orphanvolumestats/status
       - volumemigrationjobs/status
       - volumemigrationtasks/status
+      - snapshotdeletionjobs/status
+      - snapshotdeletiontasks/status
     verbs:
       - get
       - patch
@@ -306,14 +489,19 @@ data:
   config.json: |
     { 
       "auth-type": "%AUTH_TYPE%",
-      "snapshot_prefix": "snapshot",
+      "snapshot-prefixes": ["snapshot", "AstrolabeSnapshot"],
       "auto-delete-ov": "disable",
+      "monitor-orphan-snapshots": true,
+      "auto-delete-orphan-snapshots": false,
       "cns-manager-namespace": "%CNS_MANAGER_NAMESPACE%",
       "max-volume-migration-job-workers": "10",
       "max-volume-migration-task-workers": "10",
       "volume-migration-job-cleanup-elapse-time-mins": "720",
       "volume-migration-job-cleanup-interval-mins": "30",
-      "orphan-volume-detection-interval-mins": "50"
+      "snapshot-deletion-job-cleanup-elapse-time-mins": "720",
+      "snapshot-deletion-job-cleanup-interval-mins": "30",
+      "orphan-volume-detection-interval-mins": "50",
+      "orphan-snapshot-detection-interval-mins": "60"
     }
 ---
 apiVersion: apps/v1
@@ -380,7 +568,7 @@ spec:
             - name: swagger-api
               mountPath: /api
         - name: cns-manager
-          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.2.0
+          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.3.0-rc.1
           resources:
             requests:
               cpu: 500m
