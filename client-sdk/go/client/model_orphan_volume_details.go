@@ -16,9 +16,10 @@ limitations under the License.
 
 package swagger
 
+// OrphanVolumeDetails represents if the orphan volume is attached to a VM or not.
 type OrphanVolumeDetails struct {
 	// Indicates whether the orphan volume is attached to a VM or not.
-	Attached bool `json:"attached,omitempty"`
+	Attached bool `json:"attached"`
 	// The name of VM to which the orphan volume is attached.
 	Vm string `json:"vm,omitempty"`
 }

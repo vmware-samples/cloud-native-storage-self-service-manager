@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,11 +51,17 @@ type APIClient struct {
 
 	// API Services
 
+	ClusterRecordKeepingApi *ClusterRecordKeepingApiService
+
 	DatastoreOperationsApi *DatastoreOperationsApiService
 
 	JobDetailsApi *JobDetailsApiService
 
+	OrphanSnapshotApi *OrphanSnapshotApiService
+
 	OrphanVolumeApi *OrphanVolumeApiService
+
+	SnapshotForVolumeApi *SnapshotForVolumeApiService
 }
 
 type service struct {
@@ -74,9 +80,12 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.common.client = c
 
 	// API Services
+	c.ClusterRecordKeepingApi = (*ClusterRecordKeepingApiService)(&c.common)
 	c.DatastoreOperationsApi = (*DatastoreOperationsApiService)(&c.common)
 	c.JobDetailsApi = (*JobDetailsApiService)(&c.common)
+	c.OrphanSnapshotApi = (*OrphanSnapshotApiService)(&c.common)
 	c.OrphanVolumeApi = (*OrphanVolumeApiService)(&c.common)
+	c.SnapshotForVolumeApi = (*SnapshotForVolumeApiService)(&c.common)
 
 	return c
 }
@@ -322,17 +331,17 @@ func (c *APIClient) prepareRequest(
 }
 
 func (c *APIClient) decode(v interface{}, b []byte, contentType string) (err error) {
-	if strings.Contains(contentType, "application/xml") {
-		if err = xml.Unmarshal(b, v); err != nil {
-			return err
+		if strings.Contains(contentType, "application/xml") {
+			if err = xml.Unmarshal(b, v); err != nil {
+				return err
+			}
+			return nil
+		} else if strings.Contains(contentType, "application/json") {
+			if err = json.Unmarshal(b, v); err != nil {
+				return err
+			}
+			return nil
 		}
-		return nil
-	} else if strings.Contains(contentType, "application/json") {
-		if err = json.Unmarshal(b, v); err != nil {
-			return err
-		}
-		return nil
-	}
 	return errors.New("undefined response type")
 }
 

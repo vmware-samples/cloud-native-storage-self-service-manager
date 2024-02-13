@@ -139,4 +139,48 @@ func main() {
 	// logger.Info("Result", "result", res) //This gives the result in json format
 	// logger.Info("HTTP status", "status", resp.Status)
 	//=======================================================
+
+	//======List orphan snapshots======
+	// osopts := &apiclient.OrphanSnapshotApiOrphanSnapshotsListOpts{
+	//	Datacenter:     optional.NewString("VSAN-DC"),
+	//	Datastores:     optional.NewString("vsanDatastore"),
+	//	SnapshotPrefix: optional.NewString("snapshot"),
+	//	Limit:          optional.NewInt64(50),
+	//	Offset:         optional.NewInt64(0),
+	// }
+
+	// osres, resp, err := client.OrphanSnapshotApi.OrphanSnapshotsList(ctx, osopts)
+	// if err != nil {
+	//	logger.Error(err, "failed to list orphan snapshots")
+	// }
+	// logger.Info("Result", "result", osres) //This gives the result in json format
+	// logger.Info("HTTP status", "status", resp.Status)
+	//=======================================================
+
+	//======Delete orphan snapshots======
+	// osdopts := &apiclient.OrphanSnapshotApiOrphanSnapshotsDeleteOpts{
+	//	Datacenter:     optional.NewString("VSAN-DC"),
+	//	Datastores:     optional.NewString("vsanDatastore"),
+	//	SnapshotPrefix: optional.NewString("snapshot"),
+	// }
+
+	// osdres, resp, err := client.OrphanSnapshotApi.OrphanSnapshotsDelete(ctx, osdopts)
+	// if err != nil {
+	//	logger.Error(err, "failed to delete orphan snapshots")
+	// }
+	// logger.Info("Result", "result", osdres) //This gives the result in json format
+	// logger.Info("HTTP status", "status", resp.Status)
+	//=======================================================
+
+	//====== Job status ========
+	// jobId := "snapshotdeletionjob-94539b64-7cf4-11ec-94b8-165555b18754"
+
+	// res, resp, err := client.JobDetailsApi.GetJobStatus(ctx, jobId)
+	// if err != nil {
+	// 	logger.Error(err, "failed to get job status snapshot deletion job")
+	// }
+
+	// logger.Info("Result", "result", res) //This gives the result in json format
+	// logger.Info("HTTP status", "status", resp.Status)
+	//=======================================================
 }
