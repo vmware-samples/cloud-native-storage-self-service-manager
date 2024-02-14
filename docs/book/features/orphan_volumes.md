@@ -28,9 +28,13 @@ Before you start using orphan volume functionality, it's imperative that you [re
 1. *GET /orphanvolumes* 
 
 This API takes optional parameters, datacenter & list of datastores, and returns orphan volumes for them. 
-- If datacenter is not specified, then it returns all orphan volumes in the vCenter (all datastores on all datacenters ).
+- If datacenter is not specified, then it returns all orphan volumes in the vCenter (all datastores on all datacenters).
 - If only datacenter is specified, then it returns orphan volumes in all datastores in the datacenter.
 - If both datacenter & list of datastores is specified, it returns orphan volumes in specified datastores on the datacenter.
+
+This API also takes optional parameter includeDetails, it should be set to `true` to get a detailed dump of the orphan volumes.
+
+There could be hundreds of orphan volumes, so this API supports pagination as well. It takes optional parameters limit and offset. Limit specifies the maximum entries that should be displayed in single request, whereas offset specifies the starting point of the result set.
 
 Detection of orphan volumes can be a time-consuming operation if there are large number of orphans. Hence it is performed asynchronously at regular intervals and the response is cached. This API returns list of orphan volumes computed in the last run, along with the next operation interval(`RetryAfterMinutes`).  
 **Note:** For newly deployed CNS manager application when orphan volumes are being computed in the background for the first time, the API may return no orphan volumes. It should then be re-tried after `RetryAfterMinutes` to get orphan volumes computed in the latest run.

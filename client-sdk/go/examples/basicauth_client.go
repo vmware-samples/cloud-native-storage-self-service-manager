@@ -113,11 +113,14 @@ func main() {
 	//======List orphan volumes======
 	includeDetails := true
 	opts := &apiclient.OrphanVolumeApiOrphanVolumeListOpts{
-		Datacenter: optional.NewString("VSAN-DC"),
-		Datastores: optional.NewString("vsanDatastore"),
+		Datacenter:     optional.NewString("VSAN-DC"),
+		Datastores:     optional.NewString("vsanDatastore"),
+		IncludeDetails: optional.NewBool(includeDetails),
+		Limit:          optional.NewInt32(50),
+		Offset:         optional.NewInt32(0),
 	}
 
-	res, resp, err := client.OrphanVolumeApi.OrphanVolumeList(ctx, includeDetails, opts)
+	res, resp, err := client.OrphanVolumeApi.OrphanVolumeList(ctx, opts)
 	if err != nil {
 		logger.Error(err, "failed to list orphan volumes")
 	}

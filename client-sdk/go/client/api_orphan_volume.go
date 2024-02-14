@@ -1,11 +1,11 @@
 /*
-Copyright 2022 VMware, Inc.
+Copyright 2024 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,11 @@ package swagger
 
 import (
 	"context"
+	"github.com/antihax/optional"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -30,6 +30,7 @@ var (
 )
 
 type OrphanVolumeApiService service
+
 /*
 OrphanVolumeApiService Delete orphan volumes.
 Delete the orphan volumes for the given criteria.
@@ -42,16 +43,16 @@ Delete the orphan volumes for the given criteria.
 */
 
 type OrphanVolumeApiOrphanVolumeDeleteOpts struct {
-    Datacenter optional.String
-    Datastores optional.String
+	Datacenter optional.String
+	Datastores optional.String
 }
 
 func (a *OrphanVolumeApiService) OrphanVolumeDelete(ctx context.Context, deleteAttachedOrphans bool, localVarOptionals *OrphanVolumeApiOrphanVolumeDeleteOpts) (OrphanVolumeDeleteResult, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Delete")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue OrphanVolumeDeleteResult
 	)
 
@@ -104,48 +105,49 @@ func (a *OrphanVolumeApiService) OrphanVolumeDelete(ctx context.Context, deleteA
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v OrphanVolumeDeleteResult
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		if localVarHttpResponse.StatusCode == 0 {
 			var v ModelError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 OrphanVolumeApiService List all the orphan volumes.
-Returns a list of orphan volumes for the given input parameters, which could be attached or detached. Since the detection of orphan volumes is an expensive operation, the operation is performed asynchronously at regular intervals. This API returns the list of orphan volumes found in the last run of the operation.  If the request is successful, the response will contain the following: 1. &#x60;TotalOrphans&#x60; - The total number of orphan volumes found. 2. &#x60;OrphanVolumes&#x60; - The list of orphan volumes found. 3. &#x60;RetryAfterMinutes&#x60; - The time in minutes after which the next retry should be attempted to get the updated orphan volume list. 4. &#x60;TotalOrphansAttached&#x60; - The total number of orphan volumes found that are attached to a VM. 5. &#x60;TotalOrphansDetached&#x60; - The total number of orphan volumes found that are detached. 6. &#x60;Limit&#x60; - The maximum number of orphan volumes to be returned. 7. &#x60;NextOffset&#x60; - The offset of the next page if there are more orphan volumes to query. Orphan volumes are safe to delete since there is no PersistentVolume in the Kubernetes cluster referring to them. 
+Returns a list of orphan volumes for the given input parameters, which could be attached or detached. Since the detection of orphan volumes is an expensive operation, the operation is performed asynchronously at regular intervals. This API returns the list of orphan volumes found in the last run of the operation.  If the request is successful, the response will contain the following: 1. &#x60;TotalOrphans&#x60; - The total number of orphan volumes found. 2. &#x60;OrphanVolumes&#x60; - The list of orphan volumes found. 3. &#x60;RetryAfterMinutes&#x60; - The time in minutes after which the next retry should be attempted to get the updated orphan volume list. 4. &#x60;TotalOrphansAttached&#x60; - The total number of orphan volumes found that are attached to a VM. 5. &#x60;TotalOrphansDetached&#x60; - The total number of orphan volumes found that are detached. 6. &#x60;Limit&#x60; - The maximum number of orphan volumes to be returned. 7. &#x60;NextOffset&#x60; - The offset of the next page if there are more orphan volumes to query. Orphan volumes are safe to delete since there is no PersistentVolume in the Kubernetes cluster referring to them.
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param includeDetails Set to \&quot;true\&quot; to get a detailed dump of the orphan volume.
  * @param optional nil or *OrphanVolumeApiOrphanVolumeListOpts - Optional Parameters:
+     * @param "IncludeDetails" (optional.Bool) -  (Optional) Set to \&quot;true\&quot; to get a detailed dump of the orphan volume.
      * @param "Datacenter" (optional.String) -  (Optional) Datacenter name to narrow down the orphan volume search.
      * @param "Datastores" (optional.String) -  (Optional) List of comma-separated datastores. Specify only if the &#x60;datacenter&#x60; param is specified.
      * @param "Offset" (optional.Int32) -  (Optional) The offset indicates the starting point of the result set.
@@ -154,18 +156,19 @@ Returns a list of orphan volumes for the given input parameters, which could be 
 */
 
 type OrphanVolumeApiOrphanVolumeListOpts struct {
-    Datacenter optional.String
-    Datastores optional.String
-    Offset optional.Int32
-    Limit optional.Int32
+	IncludeDetails optional.Bool
+	Datacenter     optional.String
+	Datastores     optional.String
+	Offset         optional.Int32
+	Limit          optional.Int32
 }
 
-func (a *OrphanVolumeApiService) OrphanVolumeList(ctx context.Context, includeDetails bool, localVarOptionals *OrphanVolumeApiOrphanVolumeListOpts) (OrphanVolumeResult, *http.Response, error) {
+func (a *OrphanVolumeApiService) OrphanVolumeList(ctx context.Context, localVarOptionals *OrphanVolumeApiOrphanVolumeListOpts) (OrphanVolumeResult, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Get")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue OrphanVolumeResult
 	)
 
@@ -176,7 +179,9 @@ func (a *OrphanVolumeApiService) OrphanVolumeList(ctx context.Context, includeDe
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	localVarQueryParams.Add("includeDetails", parameterToString(includeDetails, ""))
+	if localVarOptionals != nil && localVarOptionals.IncludeDetails.IsSet() {
+		localVarQueryParams.Add("includeDetails", parameterToString(localVarOptionals.IncludeDetails.Value(), ""))
+	}
 	if localVarOptionals != nil && localVarOptionals.Datacenter.IsSet() {
 		localVarQueryParams.Add("datacenter", parameterToString(localVarOptionals.Datacenter.Value(), ""))
 	}
@@ -224,36 +229,36 @@ func (a *OrphanVolumeApiService) OrphanVolumeList(ctx context.Context, includeDe
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v OrphanVolumeResult
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		if localVarHttpResponse.StatusCode == 0 {
 			var v ModelError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
