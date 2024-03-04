@@ -83,9 +83,9 @@ paths:
             type: string
             format: string
             default: vsphere-config-secret
-        - name: csiDriverNamespace
+        - name: csiDriverSecretNamespace
           in: query
-          description: (Optional) Refers to the namespace of vsphere-csi-driver.
+          description: (Optional) Refers to the namespace of the config secret of vsphere-csi-driver.
           style: form
           explode: true
           schema:
@@ -457,8 +457,7 @@ paths:
       parameters:
         - name: includeDetails
           in: query
-          description: Set to "true" to get a detailed dump of the orphan volume.
-          required: true
+          description: (Optional) Set to "true" to get a detailed dump of the orphan volume.
           style: form
           explode: true
           schema:
@@ -1294,7 +1293,7 @@ components:
       properties:
         totalOrphans:
           type: integer
-          description: The total number of orphan volumes returned.
+          description: The total number of orphan volumes detected in the vCenter for the input.
           example: 1
         totalOrphansAttached:
           type: integer
@@ -1304,7 +1303,7 @@ components:
         totalOrphansDetached:
           type: integer
           description: The total number of orphan volumes that are not attached to a VM.
-            This field is set only if includeDetails is set to true.
+            This field is returned only if includeDetails is set to true.
           example: 1
         orphanVolumes:
           type: array
@@ -1354,7 +1353,7 @@ components:
             details:
               attached: false
             capacityInMb: 100
-        totalOrphans: 3
+        totalOrphans: 30
         retryAfterMinutes: 10
         limit: 3
         nextOffset: 3
