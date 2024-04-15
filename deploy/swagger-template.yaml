@@ -1625,7 +1625,9 @@ components:
     SnapshotsForVolumeResult:
       properties:
         Snapshots:
-          $ref: '#/components/schemas/SnapshotDetails'
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotDetails'
     SnapshotDetails:
       properties:
         snapshotId:

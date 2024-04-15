@@ -568,7 +568,7 @@ spec:
             - name: swagger-api
               mountPath: /api
         - name: cns-manager
-          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.3.0-rc.3
+          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.3.0
           resources:
             requests:
               cpu: 500m
