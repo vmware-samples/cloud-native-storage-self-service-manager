@@ -525,7 +525,7 @@ spec:
       containers:
         - name: nginx-proxy
           # Same dockerhub copy hosted at nginxinc/nginx-unprivileged:1.25.3
-          image: projects.registry.vmware.com/cns_manager/nginx-unprivileged-amd64:1.25.3
+          image: projects.packages.broadcom.com/cns_manager/nginx-unprivileged-amd64:1.25.3
           resources:
             requests:
               cpu: 100m
@@ -544,7 +544,7 @@ spec:
             #  readOnly: true
         - name: oauth2-proxy
           # Same copy as quay.io/oauth2-proxy/oauth2-proxy:v7.3.0-amd64
-          image: projects.registry.vmware.com/cns_manager/oauth2-proxy:v7.3.0-amd64
+          image: projects.packages.broadcom.com/cns_manager/oauth2-proxy:v7.3.0-amd64
           resources:
             requests:
               cpu: 100m
@@ -584,7 +584,7 @@ spec:
               name: web
         - name: swagger-ui
           # Same dockerhub copy hosted at swaggerapi/swagger-ui:v4.12.0
-          image: projects.registry.vmware.com/cns_manager/swagger-ui:v4.12.0
+          image: projects.packages.broadcom.com/cns_manager/swagger-ui:v4.12.0
           env:
             - name: URL
               value: "./swagger.yaml"
@@ -604,7 +604,7 @@ spec:
             - name: swagger-api
               mountPath: /api
         - name: cns-manager
-          image: projects.registry.vmware.com/cns_manager/cns-manager:r0.3.0
+          image: projects.packages.broadcom.com/cns_manager/cns-manager:r0.3.0
           resources:
             requests:
               cpu: 500m
