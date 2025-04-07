@@ -89,3 +89,19 @@ This API returns the current status of the job. A job can be in one of the follo
 
 This is a blocking API that waits for job to be successful or fail.  
 Unlike `getjobstatus` API, this will wait for the job to finish before returning the job result response.
+
+## Known Issues
+
+### Deletion Failure for Orphan Snapshots of Orphan Volumes
+When attempting to delete an orphan snapshot that belongs to an orphan volume using the DELETE /orphansnapshots API, the operation fails with the error:
+
+> "Volume with ID xxxx is not registered as a CNS Volume."
+
+#### Workaround:
+To delete orphan snapshots, use the following APIs instead:
+
+- DELETE /volumes/{volumeId}/snapshots (to delete all snapshots for a volume)
+
+- DELETE /volumes/{volumeId}/snapshots/{snapshotId} (to delete a specific snapshot)
+
+#### 🚀 Planned Improvement: The detection algorithm will be enhanced to handle these scenarios without having to manually invoke the above APIs in future updates.
