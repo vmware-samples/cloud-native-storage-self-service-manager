@@ -7,7 +7,7 @@ CNS Manager exposes APIs that can be invoked by authorized users to detect issue
 This repository provides artifacts for deploying CNS manager in vanilla Kubernetes cluster, as well as the client sdk to invoke its endpoints.
 
 ## Deploying cns-manager
-CNS manager needs to be deployed in one of the Kubernetes clusters in the vCenter.  
+CNS manager needs to be deployed in one of the namespaces running on [Supervisor Management Zones](https://techdocs.broadcom.com/us/en/vmware-cis/vsphere/vsphere-supervisor/8-0.html) in the vCenter.
 If there are multiple Kubernetes clusters in a vCenter, it's recommended that it be deployed in a dedicated admin-managed cluster, but it's not a must. However, the admin should be responsible to secure the Kubernetes cluster where CNS manager is deployed since it will have credentials to vCenter and the Kubernetes cluster.  
 Also if you want CNS manager to be highly available, deploy it on a Kubernetes cluster that's highly available itself.
 
