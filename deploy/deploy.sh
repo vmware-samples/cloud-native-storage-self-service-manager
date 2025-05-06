@@ -40,14 +40,6 @@ else
 	fi
 fi
 
-# Create a namespace where CNS manager will be deployed.
-kubectl create ns $NAMESPACE
-if [ $? -ne 0 ]
-then
-	echo "Failed to create namespace $NAMESPACE."
-	exit 1
-fi
-
 # Create a secret that has SV cluster's admin kubeconfig.
 # Edit the sv_kubeconfig file as per your deployment.
 kubectl -n $NAMESPACE create secret generic sv-kubeconfig --from-file=$SV_KUBECONFIG_FILE
