@@ -1,11 +1,11 @@
 /*
-Copyright 2021 VMware, Inc.
+Copyright 2025 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,7 +66,7 @@ type Configuration struct {
 
 func NewConfiguration() *Configuration {
 	cfg := &Configuration{
-		BasePath:      "http://localhost:8080/v1",
+		BasePath:      "http://%CNS_MANAGER_ENDPOINT%/1.0.0/",
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Swagger-Codegen/1.0.0/go",
 	}

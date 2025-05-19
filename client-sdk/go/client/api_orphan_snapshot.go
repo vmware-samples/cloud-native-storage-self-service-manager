@@ -1,11 +1,11 @@
 /*
-Copyright 2024 VMware, Inc.
+Copyright 2025 VMware, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
 	"github.com/antihax/optional"
 )
 
@@ -30,6 +31,7 @@ var (
 )
 
 type OrphanSnapshotApiService service
+
 /*
 OrphanSnapshotApiService Delete orphan snapshots.
 Use this API to identify and delete orphan snapshots. From vSphere CSI plugin&#x27;s perspective, orphan snapshots are FCD snapshots that were initiated through the vSphere CSI driver but do not have a corresponding VolumeSnapshotContent object in the Kubernetes cluster. snapshotPrefix is the prefix used in the snapshot description. Its default value is “snapshot”, which is also the default value used by snapshot sidecar in CSI and it can be configured based on prefix used in the snapshot sidecar. Use the &#x60;snapshotPrefix&#x60; parameter to specify alternate prefix.  From Velero vSphere plugin&#x27;s perspective, orphan snapshots are snapshots whose upload is failing with multiple attempts or snapshots whose local deletion is failing after successful upload. For Velero vSphere plugin, user has to specify “AstrolabeSnapshot” as the snapshotPrefix.  Orphan snapshot deletion operation is performed asynchronously. It returns a job id, the status of which can be retrieved using &#x60;jobStatus&#x60; API.
@@ -42,17 +44,17 @@ Use this API to identify and delete orphan snapshots. From vSphere CSI plugin&#x
 */
 
 type OrphanSnapshotApiOrphanSnapshotsDeleteOpts struct {
-    Datacenter optional.String
-    Datastores optional.String
-    SnapshotPrefix optional.String
+	Datacenter     optional.String
+	Datastores     optional.String
+	SnapshotPrefix optional.String
 }
 
 func (a *OrphanSnapshotApiService) OrphanSnapshotsDelete(ctx context.Context, localVarOptionals *OrphanSnapshotApiOrphanSnapshotsDeleteOpts) (SnapshotDeleteResult, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Delete")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue SnapshotDeleteResult
 	)
 
@@ -107,42 +109,43 @@ func (a *OrphanSnapshotApiService) OrphanSnapshotsDelete(ctx context.Context, lo
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 202 {
 			var v SnapshotDeleteResult
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		if localVarHttpResponse.StatusCode == 0 {
 			var v ModelError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 OrphanSnapshotApiService List all the orphan snapshots.
 Use this API to identify orphan snapshots. From vSphere CSI plugin&#x27;s perspective, orphan snapshots are FCD snapshots that were initiated through the vSphere CSI driver but do not have a corresponding VolumeSnapshotContent object in the Kubernetes cluster. snapshotPrefix is the prefix used in the snapshot description. Its default value is “snapshot”, which is also the default value used by snapshot sidecar in CSI and it can be configured based on prefix used in the snapshot sidecar. Use the &#x60;snapshotPrefix&#x60; parameter to specify alternate prefix.  From Velero vSphere plugin&#x27;s perspective, orphan snapshots are snapshots whose upload is failing with multiple attempts or snapshots whose local deletion is failing after successful upload. For Velero vSphere plugin, user has to specify “AstrolabeSnapshot” as the snapshotPrefix.  GET API for orphan snapshots support pagination. The response body contains totalOrphanSnapshots, limit and offset values. Also, response header contains X-Limit and X-Next-Offset values. Based on these values user can decide if there are more results to be fetched. Since the detection of orphan snapshots is an expensive operation, the operation is performed asynchronously at regular intervals. This API returns the list of orphan snapshots found in the last run of the operation. &#x60;retryAfterMinutes&#x60; in response body indicates the time in minutes after which the next retry should be attempted to get the updated orphan snapshot list.
@@ -157,19 +160,19 @@ Use this API to identify orphan snapshots. From vSphere CSI plugin&#x27;s perspe
 */
 
 type OrphanSnapshotApiOrphanSnapshotsListOpts struct {
-    Datacenter optional.String
-    Datastores optional.String
-    SnapshotPrefix optional.String
-    Limit optional.Int64
-    Offset optional.Int64
+	Datacenter     optional.String
+	Datastores     optional.String
+	SnapshotPrefix optional.String
+	Limit          optional.Int64
+	Offset         optional.Int64
 }
 
 func (a *OrphanSnapshotApiService) OrphanSnapshotsList(ctx context.Context, localVarOptionals *OrphanSnapshotApiOrphanSnapshotsListOpts) (OrphanSnapshotResult, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Get")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue OrphanSnapshotResult
 	)
 
@@ -230,36 +233,36 @@ func (a *OrphanSnapshotApiService) OrphanSnapshotsList(ctx context.Context, loca
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v OrphanSnapshotResult
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		if localVarHttpResponse.StatusCode == 0 {
 			var v ModelError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
