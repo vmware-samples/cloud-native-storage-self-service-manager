@@ -1,13 +1,12 @@
 # cloud-native-storage-self-service-manager
 
-CNS Manager is a diagnostic and self-service tool that helps detect and auto-remediate some of the known issues in storage control plane in vCenter. It also provides certain table stake features, such as svMotion and datastore decomission to complement the Cloud Native Storage solution offered in vCenter.
-CNS Manager exposes APIs that can be invoked by authorized users to detect issues.  
+CNS Manager is a diagnostic and self-service tool that helps detect and auto-remediate some of the known issues in storage control plane in vCenter.
+CNS Manager exposes APIs that can be invoked by authorized users to detect issues.
 
+This repository provides artifacts for deploying CNS manager in different versions of vSphere Supervisors starting from 8.0, as well as the client sdk to invoke its endpoints.
 
-This repository provides artifacts for deploying CNS manager in vanilla Kubernetes cluster, as well as the client sdk to invoke its endpoints.
-
-## Deploying cns-manager
-CNS manager needs to be deployed in one of the namespaces running on [Supervisor Management Zones](https://techdocs.broadcom.com/us/en/vmware-cis/vsphere/vsphere-supervisor/8-0.html) in the vCenter.
+## Deploying cns-manager on [vSphere Supervisor 8.0](https://techdocs.broadcom.com/us/en/vmware-cis/vsphere/vsphere-supervisor/8-0/vsphere-supervisor-concepts-and-planning/vsphere-iaas-control-plane-concepts/what-is-vsphere-with-tanzu.html)
+CNS manager needs to be deployed in one of the namespaces running on the Supervisor in the vCenter.
 If there are multiple Kubernetes clusters in a vCenter, it's recommended that it be deployed in a dedicated admin-managed cluster, but it's not a must. However, the admin should be responsible to secure the Kubernetes cluster where CNS manager is deployed since it will have credentials to vCenter and the Kubernetes cluster.  
 Also if you want CNS manager to be highly available, deploy it on a Kubernetes cluster that's highly available itself.
 
@@ -17,7 +16,7 @@ The deployment is supported with two authentication mechanisms to limit who can 
 1. Basic Auth - The CNS manager admin can choose fixed credentials at the time of deployment. This auth mechanism is less secure than OAuth2 to be used in Production. Nevertheless, it can be used for a quick deployment to test the application and in air-gapped environments where the vCenter is not connected to the internet.
 See these [instructions](docs/book/deployment/basicauth.md) for basic auth deployment.
 
-2. OAuth2 - With OAuth2, the authentication is delegated to an OIDC provider such as Gitlab, Github,Google etc. It does require creating an OAuth application on the OIDC provider before deploying CNS manager.  
+2. OAuth2 - With OAuth2, the authentication is delegated to an OIDC provider such as Gitlab, Github, Google etc. It does require creating an OAuth application on the OIDC provider before deploying CNS manager.  
 See these [instructions](docs/book/deployment/oauth2.md) for OAuth2 deployment.
 
 ## Enabling TLS for your deployment
@@ -34,7 +33,7 @@ The following section explains how to register a Kubernetes cluster with CNS man
 **1. Generate a kubeconfig with minimal privileges for CNS manager:**  
 * The provided script `scripts/get-kubeconfig.sh` generates a kubeconfig for CNS manager with minimal privileges required for its functioning. But if you're fine with providing admin kubeconfig for the cluster to be registered, you can skip kubeconfig generation part mentioned below and directly jump to cluster registration part.  
 
-Note : The script may not work on all Kubernetes distributions if they don't adhere to the [recommended steps](https://docs.vmware.com/en/VMware-vSphere-Container-Storage-Plug-in/2.0/vmware-vsphere-csp-getting-started/GUID-A1982536-F741-4614-A6F2-ADEE21AA4588.html) for deploying vSphere CSI driver.
+Note : The script may not work on all Kubernetes distributions if they don't adhere to the [recommended steps](https://techdocs.broadcom.com/us/en/vmware-cis/vsphere/container-storage-plugin/3-0/getting-started-with-vmware-vsphere-container-storage-plug-in-3-0.html) for deploying vSphere CSI driver.
 
 * The script takes 2 mandatory input parameters. First is the path to the cluster's kubeconfig file and the second is the name of the file where the generated kubeconfig file with minimal privileges should be stored. Here is how you can run the script:
 ```
@@ -57,12 +56,7 @@ curl -X 'POST' "http://CNS-MANAGER-ENDPOINT/1.0.0/registercluster?csiDriverSecre
 
 **Note**: If a registered cluster later gets decommissioned or deleted from the vCenter, don't forget to deregister it from CNS manager as well. This will ensure a smooth execution of functionalities offered through CNS manager.
 
-## Upgrading cns-manager
-See the [upgrade instructions](docs/book/deployment/upgrade.md) if you're upgrading previously deployed cns-manager instance to a newer release.
 ## Functionalities currently offered through cns-manager
-
-* **Storage vMotion for CNS volumes**  
-This feature allows migrating volumes from one datastore to another. Read [here](docs/book/features/storage_vmotion.md) for more details about this feature.
 
 * **Orphan volumes detection & deletion**  
 This feature allows detecting/deleting orphan volumes that are not being used in any of the registered Kubernetes clusters on the vCenter. Read [here](docs/book/features/orphan_volumes.md) for more details about this feature.

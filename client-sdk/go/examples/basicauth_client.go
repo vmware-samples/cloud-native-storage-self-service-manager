@@ -57,14 +57,6 @@ func main() {
 	// logger.Info("HTTP status", "status", resp.Status)
 	//=======================================================
 
-	//====== Migrate Volumes========
-	// datacenter := "VSAN-DC"
-	// srcDatastore := "vsanDatastore"
-	// targetDatastore := "agohil-nfs"
-	// fcdIdsToMigrate := &apiclient.DatastoreOperationsApiMigrateVolumesOpts{
-	// 	FcdIdsToMigrate: optional.NewInterface([]string{"ae903e93-b589-4cda-a3af-e59ef4660325"}),
-	// }
-
 	// res, resp, err := client.DatastoreOperationsApi.MigrateVolumes(ctx, datacenter, srcDatastore, targetDatastore, fcdIdsToMigrate)
 	// if err != nil {
 	// 	logger.Error(err, "failed to migrate volumes")
@@ -82,30 +74,6 @@ func main() {
 	// 	logger.Error(err, "failed to get job status")
 	// }
 
-	// logger.Info("Result", "result", res) //This gives the result in json format
-	// logger.Info("HTTP status", "status", resp.Status)
-	//=======================================================
-
-	//======Suspend Volume Provisioning on Datastore======
-	// datacenter := "VSAN-DC"
-	// datastore := "local-0"
-	//
-	// res, resp, err := client.DatastoreOperationsApi.SuspendVolumeProvisioning(ctx, datacenter, datastore)
-	// if err != nil {
-	//	logger.Error(err, "failed to suspend volume provisioning on datastore")
-	// }
-	// logger.Info("Result", "result", res) //This gives the result in json format
-	// logger.Info("HTTP status", "status", resp.Status)
-	//=======================================================
-
-	//======Resume Volume Provisioning on Datastore======
-	// datacenter := "VSAN-DC"
-	// datastore := "local-0"
-	//
-	// res, resp, err := client.DatastoreOperationsApi.ResumeVolumeProvisioning(ctx, datacenter, datastore)
-	// if err != nil {
-	// 	logger.Error(err, "failed to resume provisioing volumes on datastore")
-	// }
 	// logger.Info("Result", "result", res) //This gives the result in json format
 	// logger.Info("HTTP status", "status", resp.Status)
 	//=======================================================
