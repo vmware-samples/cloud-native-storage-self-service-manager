@@ -15,8 +15,6 @@ servers:
 tags:
   - name: ClusterRecordKeeping
     description: Everything about recording cluster details.
-  - name: DatastoreOperations
-    description: Operations invoked directly on datastores.
   - name: JobDetails
     description: Operations related to CNS manager asynchronous jobs.
   - name: OrphanVolume
@@ -149,141 +147,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /datastoreresources:
-    get:
-      tags:
-        - DatastoreOperations
-      summary: Get volumes(CNS & non-CNS) and virtual machines on a datastore.
-      description: "This API returns all the volumes(container volumes and non-CNS)\
-        \ as well as the virtual machines on a particular datastore.\nIt is particularly\
-        \ useful to get this information while decommissioning a datastore. \nThe\
-        \ fcd ids outputted from this API can then be used as an input parameter in\
-        \ MigrateVolumes API."
-      operationId: getDatastoreResources
-      parameters:
-        - name: datacenter
-          in: query
-          description: Datacenter name where the datastore is located. This input is
-            case-sensitive.
-          required: true
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-        - name: datastore
-          in: query
-          description: Name of the datastore on which container volumes need to be queried.
-            This input is case-sensitive.
-          required: true
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-      responses:
-        "200":
-          description: Returns DatastoreResourcesResult.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DatastoreResourcesResult'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /migratevolumes:
-    post:
-      tags:
-        - DatastoreOperations
-      summary: Migrate volumes from source datastore to target datastore.
-      description: "Volumes may need to be moved between the different datastores\
-        \ due to various \nreasons like retiring older datastores, replacing or disruptive\
-        \ upgrades to existing\ndatastores, saving volumes from failing datastores\
-        \ and so on. This API supports storage\nvMotion for PVs between different\
-        \ datastores (of same or different types).\nIt returns a job id, the status\
-        \ of which can be retrieved using `jobStatus` API."
-      operationId: migrateVolumes
-      parameters:
-        - name: datacenter
-          in: query
-          description: Datacenter name where source and target datastores are located.
-          required: true
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-        - name: sourceDatastore
-          in: query
-          description: "(Optional) Name of the source datastore. Specify only if all\
-            \ volumes from source datastore need to be migrated to destination datastore,\
-            \ and don't specify fcd Ids in that case. If specific list of fcd Ids is\
-            \ provided, then source datastore field will be ignored."
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-        - name: targetDatastore
-          in: query
-          description: Name of the target datastore.
-          required: true
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-        - name: fcdIdsToMigrate
-          in: query
-          description: "(Optional) Array of FCD ids to migrate. If not specified, all\
-            \ volumes from source datastore will be migrated to destination datastore."
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              type: string
-        - name: skipPolicyCheck
-          in: query
-          description: (Optional) A flag to skip validation of volume policy with target datastore. Set to "true" to skip the policy check and force migrate a volume.
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: boolean
-            format: boolean
-            default: false
-        - name: skipVolumeAccessibilityCheck
-          in: query
-          description: "(Optional) If this flag is set to 'true', it will force migrate the volumes without\
-            \ checking if they will be accessible on target datastore from all cluster nodes(or topology-matching\
-            \ nodes in a topology-aware environment). This may affect the application availability if it gets scheduled\
-            \ on a cluster node that can't access the target datastore. So it's NOT recommended to set this flag to true."
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: boolean
-            format: boolean
-            default: false
-      responses:
-        "202":
-          description: Returns MigrateVolumesResult.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MigrateVolumesResult'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
   /getjobstatus:
     get:
       tags:
@@ -346,85 +209,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobResult'
-  /suspendvolumeprovisioning:
-    post:
-      tags:
-        - DatastoreOperations
-      summary: Suspend Create Volume operation on datastore.
-      description: "This API will block creation of new File and Block volumes on the specified datastore. To unblock volume provisioning, invoke ResumeVolumeProvisioning API. \n\
-        Other volume operations like attach, detach, delete etc. will not get affected for existing volumes."
-      operationId: suspendVolumeProvisioning
-      parameters:
-        - name: datacenter
-          in: query
-          description: Datacenter name where the datastore is located. This input is case-sensitive.
-          required: true
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-        - name: datastore
-          in: query
-          description: Name of the datastore where creation of new volumes has to be blocked. This input is case-sensitive.
-          required: true
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-      responses:
-        "200":
-          description: Returns SuspendVolumeProvisioningResult.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuspendVolumeProvisioningResult'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /resumevolumeprovisioning:
-    post:
-      tags:
-        - DatastoreOperations
-      summary: Resume Create Volume operation on datastore.
-      description: "This API will unblock creation of new File and Block volumes on the specified datastore. To block volume provisioning, invoke SuspendVolumeProvisioning API."
-      operationId: resumeVolumeProvisioning
-      parameters:
-        - name: datacenter
-          in: query
-          description: Datacenter name where the datastore is located. This input is case-sensitive.
-          required: true
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-        - name: datastore
-          in: query
-          description: Name of the datastore where creation of new volumes has to be resumed. This input is case-sensitive.
-          required: true
-          style: form
-          explode: true
-          schema:
-            type: string
-            format: string
-      responses:
-        "200":
-          description: Returns ResumeVolumeProvisioningResult.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResumeVolumeProvisioningResult'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
   /orphanvolumes:
     get:
       tags:
@@ -983,25 +767,12 @@ components:
       example:
         status: Deregistration Successful
         clusterId: cluster-1
-    FcdAttachmentDetails:
-      properties:
-        attached:
-          type: boolean
-          description: Indicates whether the volume is attached to a VM or not.
-          example: true
-        vm:
-          type: string
-          description: The name of VM to which the volume is attached.
-          example: k8s-node-1
-      example:
-        vm: k8s-node-1
-        attached: true
     JobResult:
       properties:
         jobId:
           type: string
           description: ID of the job.
-          example: volumemigrationjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
+          example: snapshotdeletionjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
         phase:
           type: string
           description: Current phase of the job.
@@ -1010,192 +781,17 @@ components:
           type: object
           description: Input parameters of the job.
           oneOf:
-            - $ref: '#/components/schemas/VolumeMigrationJobParameters'
             - $ref: '#/components/schemas/SnapshotDeletionJobParameters'
         jobStatus:
           type: object
           description: Status of individual tasks and the overall job status.
           oneOf:
-            - $ref: '#/components/schemas/VolumeMigrationJobStatus'
             - $ref: '#/components/schemas/SnapshotDeletionJobStatus'
       example:
         phase: Running
-        jobId: volumemigrationjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
+        jobId: snapshotdeletionjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
         jobStatus: ""
         jobParameters: ""
-    DatastoreResourcesResult:
-      properties:
-        datacenter:
-          type: string
-          description: Datacenter on which datastore resides.
-          example: VSAN-DC
-        datastore:
-          type: string
-          description: Datastore on which container volumes are being queried.
-          example: vsanDatastore
-        totalVolumes:
-          type: integer
-          description: The number of volumes on the datastore.
-          format: int64
-          example: 12
-        containerVolumes:
-          type: array
-          description: Array of CNS volumes with the FCD id and vm attachment details.
-          items:
-            $ref: '#/components/schemas/VolumeDetails'
-        otherVolumes:
-          type: array
-          description: Array of non-CNS volumes with the FCD id and vm attachment
-            details.
-          items:
-            $ref: '#/components/schemas/VolumeDetails'
-        virtualMachines:
-          type: array
-          description: Array of virtual machines on the datastore.
-          items:
-            $ref: '#/components/schemas/VMDetails'
-      example:
-        totalVolumes: 12
-        datastore: vsanDatastore
-        otherVolumes:
-          - null
-          - null
-        datacenter: VSAN-DC
-        containerVolumes:
-          - attachmentDetails:
-              vm: k8s-node-1
-              attached: true
-            fcdName: pvc-338934c2-6067-489a-a929-7c559ea18c82
-            host: 10.187.143.84
-            fcdId: 64d6787e-397b-4c99-a151-c6f37c49fcff
-          - attachmentDetails:
-              vm: k8s-node-1
-              attached: true
-            fcdName: pvc-338934c2-6067-489a-a929-7c559ea18c82
-            host: 10.187.143.84
-            fcdId: 64d6787e-397b-4c99-a151-c6f37c49fcff
-        virtualMachines:
-          - vmName: k8s-worker1
-            vmId: vm-41
-          - vmName: k8s-worker1
-            vmId: vm-41
-    VolumeDetails:
-      properties:
-        fcdId:
-          type: string
-          description: ID of the FCD.
-          example: 64d6787e-397b-4c99-a151-c6f37c49fcff
-        fcdName:
-          type: string
-          description: Name of the FCD.
-          example: pvc-338934c2-6067-489a-a929-7c559ea18c82
-        attachmentDetails:
-          $ref: '#/components/schemas/FcdAttachmentDetails'
-        host:
-          type: string
-          description: Host owning the node vm to which the volume is attached.
-          example: 10.187.143.84
-      example:
-        attachmentDetails:
-          vm: k8s-node-1
-          attached: true
-        fcdName: pvc-338934c2-6067-489a-a929-7c559ea18c82
-        host: 10.187.143.84
-        fcdId: 64d6787e-397b-4c99-a151-c6f37c49fcff
-    VMDetails:
-      properties:
-        vmName:
-          type: string
-          description: Name of the virtual machine.
-          example: k8s-worker1
-        vmId:
-          type: string
-          description: Id of the virtual machine.
-          example: vm-41
-      example:
-        vmName: k8s-worker1
-        vmId: vm-41
-    MigrateVolumesResult:
-      properties:
-        jobId:
-          type: string
-          description: Identifier of the volume migration job submitted
-          example: volumemigrationjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
-      example:
-        jobId: volumemigrationjob-d1e10795-700f-11ec-bcf8-8630aaccb28e
-    VolumeMigrationJobParameters:
-      properties:
-        datacenter:
-          type: string
-          description: Datacenter on which source and target datastores reside.
-          example: VSAN-DC
-        sourceDatastore:
-          type: string
-          description: Name of the source datastore for volume migration.
-          example: vsanDatastore
-        targetDatastore:
-          type: string
-          description: Name of the target datastore for volume migration.
-          example: nfs-1
-        volumesToMigrate:
-          type: array
-          description: Array of volumes provided to be migrated.
-          items:
-            type: string
-    VolumeMigrationJobStatus:
-      properties:
-        overallPhase:
-          type: string
-          description: Overall phase of the volume migration job.
-          example: Running
-          enum:
-            - Queued
-            - Running
-            - Success
-            - Error
-        startTime:
-          type: string
-          description: Time at which the job started processing.
-          format: date-time
-          example: "2022-02-18T22:28:54Z"
-        endTime:
-          type: string
-          description: Time at which the job completed processing.
-          format: date-time
-          example: "2022-02-18T22:29:01Z"
-        volumeMigrationTasks:
-          type: array
-          description: Array of status of individual volume migration tasks in the
-            job.
-          items:
-            $ref: '#/components/schemas/VolumeMigrationTaskStatus'
-    VolumeMigrationTaskStatus:
-      properties:
-        fcdId:
-          type: string
-          description: ID of the FCD being migrated
-          example: 64d6787e-397b-4c99-a151-c6f37c49fcff
-        phase:
-          type: string
-          description: Current phase of the volume migration.
-          example: Success
-          enum:
-            - Queued
-            - Running
-            - Success
-            - Error
-        taskStartTime:
-          type: string
-          description: The timestamp at which the task was invoked.
-          format: date-time
-          example: "2022-02-18T22:28:54Z"
-        taskEndTime:
-          type: string
-          description: The timestamp at which the task finished.
-          format: date-time
-          example: "2022-02-18T22:28:54Z"
-        error:
-          $ref: "#/components/schemas/Fault"
     Fault:
       properties:
         message:
@@ -1206,22 +802,6 @@ components:
           type: string
           description: Type of fault.
           example: CnsFault
-    SuspendVolumeProvisioningResult:
-      properties:
-        message:
-          type: string
-          description: Result of suspending volume provisioning on datastore.
-          example: "Successfully suspended volume provisioning on datastore nfs0-1."
-      example:
-        message: Successfully suspended volume provisioning on datastore nfs0-1.
-    ResumeVolumeProvisioningResult:
-      properties:
-        message:
-          type: string
-          description: Result of resuming volume provisioning on datastore.
-          example: "Successfully resumed volume provisioning on datastore nfs0-1."
-      example:
-        message: Successfully resumed volume provisioning on datastore nfs0-1.
     OrphanVolumeDetails:
       type: object
       description: OrphanVolumeDetails represents if the orphan volume is attached to a VM or not.
